@@ -11,25 +11,43 @@ Shows version
 ### install
 Installs a package into specified root folder. Example:
 ```shell
-ctcli install --root /myfolder/ /path/to/package.tar.gz
+ctcli install /path/to/package.tar.gz
+```
+
+### upgrade
+Upgrades a release with binaries contained in given package. Backups previous release. Example:
+```shell
+ctcli upgrade /path/to/package.tar.gz
+```
+
+### rollback
+Install previous release
+```shell
+ctcli rollback
+```
+
+### list-releases
+Shows full list of releases and highlights current release.
+```shell
+ctcli list-releases
 ```
 
 ### delete
-Deletes a completely. Example:
+Deletes a release completely. Example:
 ```shell
-ctcli delete --root /myfolder/
+ctcli delete
 ```
 
 ### start
 Starts current installation. Example:
 ```shell
-ctcli start --root /myfolder/
+ctcli start [app]
 ```
 
 ### stop
 Stops current installation. Example:
 ```shell
-ctcli stop --root /myfolder/
+ctcli stop [app]
 ```
 
 ## Root Directory File Structure

@@ -1,11 +1,10 @@
 package cmd
 
 import (
-	"crafttalk-cli/util"
+	"crafttalk-cli/ctcli"
 	"github.com/spf13/cobra"
 	"log"
 	"os"
-	"path"
 	"path/filepath"
 )
 
@@ -20,11 +19,6 @@ var installCmd = &cobra.Command{
 			return
 		}
 
-		if _, err := os.Stat(packagePath); os.IsNotExist(err) {
-			log.Fatalf("Couldn't find package %s", packagePath)
-			return
-		}
-
 		rootFlag := cmd.Flag("root")
 		rootDir, err := filepath.Abs(rootFlag.Value.String())
 		if err != nil {
@@ -32,19 +26,9 @@ var installCmd = &cobra.Command{
 			return
 		}
 
-
-		log.Printf("Root dir: %s", rootDir)
-		_ = os.MkdirAll(rootDir, os.ModePerm)
-
-		tempFolder := path.Join(rootDir, "tmp")
-		log.Printf("Extracting package %s to %s", packagePath, tempFolder)
-		_ = os.RemoveAll(tempFolder)
-		_ = os.MkdirAll(tempFolder, os.ModePerm)
-
-		err = util.ExtractTarGz(packagePath, tempFolder)
+		err = ctcli.Install(rootDir, packagePath)
 		if err != nil {
-			cmd.PrintErr(err)
-			return
+			log.Fatal(err)
 		}
 	},
 }
