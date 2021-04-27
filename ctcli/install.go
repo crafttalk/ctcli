@@ -1,7 +1,7 @@
 package ctcli
 
 import (
-	"crafttalk-cli/util"
+	"ctcli/util"
 	"fmt"
 	"log"
 	"os"

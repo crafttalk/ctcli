@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"crafttalk-cli/ctcli"
+	"ctcli/ctcli"
 	"github.com/spf13/cobra"
 	"log"
 	"os"

@@ -1,6 +1,6 @@
 package main
 
-import "crafttalk-cli/cmd"
+import "ctcli/cmd"
 
 func main() {
 	cmd.Execute()
