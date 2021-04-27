@@ -5,14 +5,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var deleteCmd = &cobra.Command{
-	Use: "delete",
-	Short: "delete a release",
+var stopCmd = &cobra.Command{
+	Use: "stop [app]",
+	Short: "start a service",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("not implemented")
 	},
 }
 
 func init()  {
-	rootCmd.AddCommand(deleteCmd)
+	rootCmd.AddCommand(stopCmd)
 }

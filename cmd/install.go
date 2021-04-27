@@ -4,13 +4,12 @@ import (
 	"ctcli/domain"
 	"github.com/spf13/cobra"
 	"log"
-	"os"
 	"path/filepath"
 )
 
 var installCmd = &cobra.Command{
 	Use: "install [path to package]",
-	Short: "Install a release",
+	Short: "install a release",
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		packagePath, err := filepath.Abs(args[0])
@@ -34,11 +33,5 @@ var installCmd = &cobra.Command{
 }
 
 func init()  {
-	workDir, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	installCmd.Flags().String("root", workDir, "root of the installation")
 	rootCmd.AddCommand(installCmd)
 }
