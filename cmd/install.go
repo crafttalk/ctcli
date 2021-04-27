@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"ctcli/ctcli"
+	"ctcli/domain"
 	"github.com/spf13/cobra"
 	"log"
 	"os"
@@ -26,7 +26,7 @@ var installCmd = &cobra.Command{
 			return
 		}
 
-		err = ctcli.Install(rootDir, packagePath)
+		err = domain.Install(rootDir, packagePath)
 		if err != nil {
 			log.Fatal(err)
 		}

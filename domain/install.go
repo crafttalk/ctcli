@@ -1,4 +1,4 @@
-package ctcli
+package domain
 
 import (
 	"ctcli/util"
