@@ -7,25 +7,14 @@ import (
 	"strings"
 )
 
-const BACKUP_FOLDER_NAME = "backups"
-const CURRENT_RELEASE_FOLDER_NAME = "current-release"
-const RELEASE_INFO_JSON = "release-info.json"
+func GetReleases(rootDir string) ([]ReleaseMeta, error) {
+	releasesFolder := GetReleasesFolder(rootDir)
 
-type RootDirMeta struct {
-	currentReleaseFolder string
-	logsFolder string
-	configFolder string
-
-}
-
-func GetReleases(rootDirPath string) ([]ReleaseMeta, error) {
-	backupsFolder := path.Join(rootDirPath, BACKUP_FOLDER_NAME)
-
-	if _, err := os.Stat(backupsFolder); os.IsNotExist(err) {
+	if _, err := os.Stat(releasesFolder); os.IsNotExist(err) {
 		return nil, err
 	}
 
-	files, err := ioutil.ReadDir(backupsFolder)
+	files, err := ioutil.ReadDir(releasesFolder)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +23,7 @@ func GetReleases(rootDirPath string) ([]ReleaseMeta, error) {
 
 	for _, f := range files {
 		if strings.HasSuffix(f.Name(), ".json") {
-			releaseMeta, err := GetReleaseInfoFromJsonFile(path.Join(backupsFolder, f.Name()))
+			releaseMeta, err := GetReleaseInfoFromJsonFile(path.Join(releasesFolder, f.Name()))
 			if err == nil {
 				result = append(result, releaseMeta)
 			}
@@ -44,8 +33,8 @@ func GetReleases(rootDirPath string) ([]ReleaseMeta, error) {
 	return result, nil
 }
 
-func GetCurrentReleaseInfo(rootDirPath string) (ReleaseMeta, error) {
-	releaseInfoPath := path.Join(rootDirPath, CURRENT_RELEASE_FOLDER_NAME, RELEASE_INFO_JSON)
+func GetCurrentReleaseInfo(rootDir string) (ReleaseMeta, error) {
+	releaseInfoPath := GetCurrentReleaseInfoPath(rootDir)
 	if _, err := os.Stat(releaseInfoPath); os.IsNotExist(err) {
 		return ReleaseMeta{}, err
 	}

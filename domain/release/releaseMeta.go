@@ -8,11 +8,16 @@ import (
 )
 
 type ReleaseMeta struct {
-	ArchName string `json:"archName"`
+	ImageTag string `json:"imageTag"`
 	Branch string `json:"branch"`
 	CommitSha string `json:"commitSha"`
 	BuildDate time.Time `json:"buildDate"`
 	InstalledDate time.Time `json:"installedDate"`
+}
+
+type TmpMeta struct {
+	PackageVersion int `json:"packageVersion"`
+	ReleaseMeta ReleaseMeta `json:"releaseMeta"`
 }
 
 func GetReleaseInfoFromJsonFile(filePath string) (ReleaseMeta, error) {

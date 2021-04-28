@@ -53,7 +53,7 @@ domain stop [app]
 ## Root Directory File Structure
 
 ```
-/backups - Backups and etc.
+/releases - Previous releases and etc.
 /config - Services' configs
 /current-release - Current installation
 /logs - Logs

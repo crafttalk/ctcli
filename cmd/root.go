@@ -16,7 +16,7 @@ var rootCmd = &cobra.Command{
 }
 
 func Execute()  {
-	//rootCmd.SetArgs([]string{ "install", "--root", "/home/lkmfwe/ctcli", "/home/lkmfwe/Programming/FSharp/opbot/packaging/package/crafttalk-opbot-release-2021-03-22-6-commit.tar.gz" })
+	rootCmd.SetArgs([]string{ "--root", "/home/lkmfwe/ctcli", "install", "/home/lkmfwe/Programming/gitlab/aibotdev/core/opbot/packaging/package/crafttalk-opbot-release-2021-03-22-6-commit.tar.gz" })
 
 	workDir, err := os.Getwd()
 	if err != nil {

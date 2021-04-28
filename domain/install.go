@@ -1,60 +1,18 @@
 package domain
 
 import (
+	"ctcli/domain/ctcliDir"
+	"ctcli/domain/packaging"
+	"ctcli/domain/release"
 	"ctcli/util"
 	"encoding/json"
 	"fmt"
+	"github.com/otiai10/copy"
 	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
 	"path"
 )
-
-type HealthCheck struct {
-	command []string
-	waitFor int
-}
-
-type AppPackageConfig struct {
-	baseImage   string
-	healthcheck HealthCheck
-	logsFolder  string
-	configs     []string
-}
-
-/// tmp_abs_path example: /home/lkmfwe/ctcli/tmp/package/apps/agents
-func extractBlobs(umociPath string, containerTmpPath string, name string) error {
-	var skopeoImagePath = path.Join(containerTmpPath, "skopeo")
-	var runcBundlePath = path.Join(containerTmpPath, "runc-bundle")
-
-	cmd := exec.Command(
-		umociPath,
-		"unpack",
-		"--rootless",
-		"--image",
-		fmt.Sprintf("%s:%s", skopeoImagePath, name),
-		runcBundlePath,
-	)
-	stdoutStderr, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("original error: %s\nArgs:%s\nStdout:\n%s\n", err, cmd.Args, stdoutStderr)
-	}
-
-	if err := os.RemoveAll(skopeoImagePath); err != nil {
-		return err
-	}
-	if err := os.Rename(path.Join(runcBundlePath, "rootfs"), path.Join(containerTmpPath, "rootfs")); err != nil {
-		return err
-	}
-	if err := os.Rename(path.Join(runcBundlePath, "config.json"), path.Join(containerTmpPath, "config.json")); err != nil {
-		return err
-	}
-	if err := os.RemoveAll(runcBundlePath); err != nil {
-		return err
-	}
-	return nil
-}
 
 func GetAppConfig(path string) (AppPackageConfig, error) {
 	file, err := os.Open(path)
@@ -66,11 +24,91 @@ func GetAppConfig(path string) (AppPackageConfig, error) {
 	if err != nil {
 		return AppPackageConfig{}, err
 	}
-	config := new(AppPackageConfig)
-	if err := json.Unmarshal(bytesFromFile, config); err != nil {
+	var config AppPackageConfig
+	if err := json.Unmarshal(bytesFromFile, &config); err != nil {
 		return AppPackageConfig{}, err
 	}
-	return *config, nil
+	return config, nil
+}
+
+func copyBinariesToRelease(rootDir string, packagePath string) error {
+	if err := copy.Copy(packaging.GetPackageRuncPath(packagePath), release.GetCurrentReleaseRuncPath(rootDir)); err != nil {
+		return err
+	}
+	if err := copy.Copy(packaging.GetPackageAppsFolder(packagePath), release.GetCurrentReleaseAppsFolder(rootDir)); err != nil {
+		return err
+	}
+	return nil
+}
+
+func copyPackagesToRelease(rootDir string, packagePath string) error {
+	apps, err := packaging.GetPackageAppsList(packagePath)
+	if err != nil {
+		return err
+	}
+
+	for _, app := range apps {
+		appPackageConfigPath := release.GetCurrentReleasePackageConfigPath(rootDir, app)
+		appPackageConfig, err := GetAppConfig(appPackageConfigPath)
+		if err != nil {
+			return err
+		}
+
+		for _, configPath := range appPackageConfig.Configs {
+			absContainerConfigPath := path.Join(release.GetCurrentReleaseAppRootfsFolder(rootDir, app), configPath)
+			if util.PathExists(absContainerConfigPath) {
+				configPath := path.Join(ctcliDir.GetAppConfigDir(rootDir, app), configPath)
+				_ = os.MkdirAll(path.Dir(configPath), os.ModePerm)
+
+				if err := util.CopyFile(absContainerConfigPath, configPath); err != nil {
+					return err
+				}
+			}
+		}
+
+		fmt.Println(appPackageConfig)
+		if appPackageConfig.LogsFolder != "" {
+			absContainerLogPath := path.Join(release.GetCurrentReleaseAppRootfsFolder(rootDir, app), appPackageConfig.LogsFolder)
+			if util.PathExists(absContainerLogPath) {
+				_ = os.RemoveAll(absContainerLogPath)
+			}
+
+			rootDirLogPath := ctcliDir.GetAppLogsDir(rootDir, app)
+			_ = os.MkdirAll(rootDirLogPath, os.ModePerm)
+			if err := os.Symlink(rootDirLogPath, absContainerLogPath); err != nil {
+				log.Printf("can not make symlink from %s to %s", rootDirLogPath, absContainerLogPath)
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func GetCurrentCurrentReleaseInfo (currentReleaseInfoPath string) (release.TmpMeta, error) {
+	file, err := os.Open(currentReleaseInfoPath)
+	if err != nil {
+		return release.TmpMeta{}, err
+	}
+	defer file.Close()
+	bytesFromFile, err := ioutil.ReadAll(file)
+	if err != nil {
+		return release.TmpMeta{}, err
+	}
+	var meta release.TmpMeta
+	if err := json.Unmarshal(bytesFromFile, &meta); err != nil {
+		return release.TmpMeta{}, err
+	}
+	return meta, nil
+}
+
+func MakeCurrentReleaseInfoFile (rootDir string) error {
+	//currentReleaseInfoPath := release.GetCurrentReleaseInfoPath(rootDir)
+	//meta, err := GetCurrentCurrentReleaseInfo(currentReleaseInfoPath)
+	//if err != nil {
+	//	return err
+	//}
+	//currentReleaseInfo := meta.ReleaseMeta
+	//currentReleaseInfo.InstalledDate =
 }
 
 func Install(rootDir string, packagePath string) error {
@@ -81,99 +119,35 @@ func Install(rootDir string, packagePath string) error {
 		return fmt.Errorf("root dir %s doesn't exists", rootDir)
 	}
 
-	log.Printf("Root dir: %s", rootDir)
-	_ = os.MkdirAll(rootDir, os.ModePerm)
+	log.Printf("Installing in root dir: %s", rootDir)
 
-	tempFolder := path.Join(rootDir, "tmp")
+	tempFolder := ctcliDir.GetTempDir(rootDir)
 	log.Printf("Extracting package %s to %s", packagePath, tempFolder)
 
-	_ = os.RemoveAll(tempFolder)
-	_ = os.MkdirAll(tempFolder, os.ModePerm)
-	// We need to defer delete tempFolder HERE, immediately after we made it
+	ctcliDir.DeleteTempDir(rootDir)
+	ctcliDir.CreateTempDir(rootDir)
 
 	err := util.ExtractTarGz(packagePath, tempFolder)
 	if err != nil {
 		return err
 	}
 
-	umociPath := path.Join(tempFolder, "package", "umoci.amd64")
-	runcPath := path.Join(tempFolder, "package", "runc.amd64")
-
-	if err := os.Chmod(umociPath, 0775); err != nil {
+	if err := packaging.PreparePackage(tempFolder); err != nil {
 		return err
 	}
-	if err := os.Chmod(runcPath, 0775); err != nil {
-		return err
-	}
-
-	folders, err := ioutil.ReadDir(fmt.Sprintf("%s/package/apps", tempFolder))
-	if err != nil {
-		return err
-	}
-	for _, folder := range folders {
-		var containerTmpPath = fmt.Sprintf("%s/package/apps/%s", tempFolder, folder.Name())
-		log.Printf("Extracting blob %s", containerTmpPath)
-		if err := extractBlobs(tempFolder, containerTmpPath, folder.Name()); err != nil {
-			return err
-		}
-	}
-
-	tempPackagePath := path.Join(tempFolder, "package")
-	currentReleasePath := path.Join(rootDir, "current-release")
-
-	// Need to move apps from current release to backups HERE, before copying tmp to current release
-
-	// /tmp/package/runc.amd64 -> /current-release/runc.amd64
-	if err := os.Rename(path.Join(tempPackagePath, "runc.amd64"), path.Join(currentReleasePath, "runc.amd64")); err != nil {
-		return err
-	}
-	// /tmp/package/apps -> /current-release/apps
-	if err := os.Rename(path.Join(tempPackagePath, "apps"), path.Join(currentReleasePath, "apps")); err != nil { // /tmp/package/apps DELETING!!!!!
-		return err
-	}
-
-	// if not exists -> create /config
-	// if not exists -> create /logs
-	// if not exists -> create /releases
-	util.CreateDirIfNotExist(rootDir, "config")
-	util.CreateDirIfNotExist(rootDir, "logs")
-	util.CreateDirIfNotExist(rootDir, "releases")
-
-	// for each app in package:
-	// copy container configs to /config/{appName}/config/config.json, /config/{appName}/bin/NLog.config (e.g)
-	// make symlink from logFolder to /logs/{appName}
-	// ln -s /home/lkmfwe/ctcli/logs/agents /home/lkmfwe/ctcli/current-release/apps/agents/rootfs/runtime/logs
-
-	for _, app := range folders {
-		appPackageConfigPath := path.Join(currentReleasePath, "apps", app.Name(), "package-config.json")
-		appPackageConfig, err := GetAppConfig(appPackageConfigPath)
-		if err != nil {
-			return err
-		}
-		for _, configPath := range appPackageConfig.configs {
-			absContainerConfigPath := path.Join(currentReleasePath, "apps", app.Name(), "rootfs", configPath)
-			if util.PathExists(absContainerConfigPath) {
-				rootDirConfigPath := path.Join(rootDir, "config", app.Name(), configPath)
-				if err := util.CopyFile(absContainerConfigPath, rootDirConfigPath); err != nil {
-					return err
-				}
-			}
-		}
-		absContainerLogPath := path.Join(currentReleasePath, "apps", app.Name(), "rootfs", appPackageConfig.logsFolder)
-		if util.PathExists(absContainerLogPath) {
-			rootDirLogPath := path.Join(rootDir, "logs", app.Name())
-			if err := os.Symlink(absContainerLogPath, rootDirLogPath); err != nil {
-				log.Printf("can not make symlink from %s to %s", rootDirLogPath, absContainerLogPath)
-				return err
-			}
-		}
-	}
-
-	// defer удаление папки /tmp
 
 	// ПОТОМ:
 	// make backup from /current-release to -> backups/<release-name>.tar.gz
 	// make backup manifest file -> backups/<release-name>.json
+
+	if err := copyBinariesToRelease(rootDir, tempFolder); err != nil {
+		return err
+	}
+	if err := copyPackagesToRelease(rootDir, tempFolder); err != nil {
+		return err
+	}
+
+	//  tmp/meta.json -> current-release/
 
 	return nil
 }

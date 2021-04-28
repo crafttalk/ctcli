@@ -7,7 +7,7 @@ import (
 
 var stopCmd = &cobra.Command{
 	Use: "stop [app]",
-	Short: "start a service",
+	Short: "stops a service",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("not implemented")
 	},
