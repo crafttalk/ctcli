@@ -2,14 +2,13 @@ package domain
 
 import (
 	"ctcli/util"
+	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 	"path"
-	"encoding/json"
 )
 
 type HealthCheck struct {
@@ -18,14 +17,11 @@ type HealthCheck struct {
 }
 
 type AppPackageConfig struct {
-	baseImage string
+	baseImage   string
 	healthcheck HealthCheck
-	logsFolder string
-	configs []string
+	logsFolder  string
+	configs     []string
 }
-
-
-
 
 /// tmp_abs_path example: /home/lkmfwe/ctcli/tmp/package/apps/agents
 func extractBlobs(umociPath string, containerTmpPath string, name string) error {
@@ -60,36 +56,22 @@ func extractBlobs(umociPath string, containerTmpPath string, name string) error 
 	return nil
 }
 
-func CreateDirIfNotExist(rootDir string, dirToCreate string) {
-	absPath := path.Join(rootDir, dirToCreate)
-	if _, err := os.Stat(absPath); os.IsNotExist(err) {
-		_ = os.MkdirAll(absPath, os.ModePerm)
+func GetAppConfig(path string) (AppPackageConfig, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return AppPackageConfig{}, err
 	}
+	defer file.Close()
+	bytesFromFile, err := ioutil.ReadAll(file)
+	if err != nil {
+		return AppPackageConfig{}, err
+	}
+	config := new(AppPackageConfig)
+	if err := json.Unmarshal(bytesFromFile, config); err != nil {
+		return AppPackageConfig{}, err
+	}
+	return *config, nil
 }
-
-func CopyFile (pathFrom, PathTo string) error {
-	in, err := os.Open(pathFrom)
-	if err != nil {
-		return err
-	}
-	defer in.Close()
-
-	out, err := os.Create(PathTo)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
-	_, err = io.Copy(out, in)
-	if err != nil {
-		return err
-	}
-	return out.Close()
-}
-
-//func GetAppConfigs(path string) error {
-	//os.Open(appPackageConfigPath)
-//}
 
 func Install(rootDir string, packagePath string) error {
 	if !util.PathExists(packagePath) {
@@ -107,6 +89,7 @@ func Install(rootDir string, packagePath string) error {
 
 	_ = os.RemoveAll(tempFolder)
 	_ = os.MkdirAll(tempFolder, os.ModePerm)
+	// We need to defer delete tempFolder HERE, immediately after we made it
 
 	err := util.ExtractTarGz(packagePath, tempFolder)
 	if err != nil {
@@ -135,64 +118,58 @@ func Install(rootDir string, packagePath string) error {
 		}
 	}
 
-
 	tempPackagePath := path.Join(tempFolder, "package")
 	currentReleasePath := path.Join(rootDir, "current-release")
+
+	// Need to move apps from current release to backups HERE, before copying tmp to current release
 
 	// /tmp/package/runc.amd64 -> /current-release/runc.amd64
 	if err := os.Rename(path.Join(tempPackagePath, "runc.amd64"), path.Join(currentReleasePath, "runc.amd64")); err != nil {
 		return err
 	}
 	// /tmp/package/apps -> /current-release/apps
-	if err := os.Rename(path.Join(tempPackagePath, "apps"), path.Join(currentReleasePath, "apps")); err != nil {
+	if err := os.Rename(path.Join(tempPackagePath, "apps"), path.Join(currentReleasePath, "apps")); err != nil { // /tmp/package/apps DELETING!!!!!
 		return err
 	}
-
 
 	// if not exists -> create /config
 	// if not exists -> create /logs
 	// if not exists -> create /releases
-	CreateDirIfNotExist(rootDir, "config")
-	CreateDirIfNotExist(rootDir, "logs")
-	CreateDirIfNotExist(rootDir, "releases")
+	util.CreateDirIfNotExist(rootDir, "config")
+	util.CreateDirIfNotExist(rootDir, "logs")
+	util.CreateDirIfNotExist(rootDir, "releases")
 
 	// for each app in package:
-		// copy container configs to /config/{appName}/config/config.json, /config/{appName}/bin/NLog.config (e.g)
-		// make symlink from logFolder to /logs/{appName}
-		// ln -s /home/lkmfwe/ctcli/logs/agents /home/lkmfwe/ctcli/current-release/apps/agents/rootfs/runtime/logs
+	// copy container configs to /config/{appName}/config/config.json, /config/{appName}/bin/NLog.config (e.g)
+	// make symlink from logFolder to /logs/{appName}
+	// ln -s /home/lkmfwe/ctcli/logs/agents /home/lkmfwe/ctcli/current-release/apps/agents/rootfs/runtime/logs
 
 	for _, app := range folders {
-
-		appPackageConfigPath := path.Join(tempFolder, "package", "apps", app.Name(), "package-config.json")
-		appPackageConfigFile, err := os.Open(appPackageConfigPath)
+		appPackageConfigPath := path.Join(currentReleasePath, "apps", app.Name(), "package-config.json")
+		appPackageConfig, err := GetAppConfig(appPackageConfigPath)
 		if err != nil {
 			return err
 		}
-
-
-		/*containerConfigPath := path.Join(tempFolder, "package", "apps", app.Name(), "rootfs", "config", "config.json")
-		if _, err := os.Stat(containerConfigPath); !os.IsNotExist(err) {
-			rootDirConfigPath := path.Join(rootDir, "config", app.Name(), "config", "config.json")
-			if err := CopyFile(containerConfigPath, rootDirConfigPath); err != nil {
+		for _, configPath := range appPackageConfig.configs {
+			absContainerConfigPath := path.Join(currentReleasePath, "apps", app.Name(), "rootfs", configPath)
+			if util.PathExists(absContainerConfigPath) {
+				rootDirConfigPath := path.Join(rootDir, "config", app.Name(), configPath)
+				if err := util.CopyFile(absContainerConfigPath, rootDirConfigPath); err != nil {
+					return err
+				}
+			}
+		}
+		absContainerLogPath := path.Join(currentReleasePath, "apps", app.Name(), "rootfs", appPackageConfig.logsFolder)
+		if util.PathExists(absContainerLogPath) {
+			rootDirLogPath := path.Join(rootDir, "logs", app.Name())
+			if err := os.Symlink(absContainerLogPath, rootDirLogPath); err != nil {
+				log.Printf("can not make symlink from %s to %s", rootDirLogPath, absContainerLogPath)
 				return err
 			}
 		}
-
-		containerNLogConfigPath := path.Join(tempFolder, "package", "apps", app.Name(), "rootfs", "bin", "NLog.config")
-		if _, err := os.Stat(containerNLogConfigPath); !os.IsNotExist(err) {
-			rootDirNLogConfigPath := path.Join(rootDir, "config", app.Name(), "bin", "NLog.config")
-			if err := CopyFile(containerNLogConfigPath, rootDirNLogConfigPath); err != nil {
-				return err
-			}
-		}*/
-
-		//_ = os.RemoveAll(configPath)
 	}
 
-
-
 	// defer удаление папки /tmp
-
 
 	// ПОТОМ:
 	// make backup from /current-release to -> backups/<release-name>.tar.gz
