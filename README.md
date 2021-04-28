@@ -70,4 +70,5 @@ package/    - contains package content
         ./{app}     - app in package
             ./package-config.json   - contains AppPackageConfig object
             ./version.json          - contains info about app image version 
+            ./skopeo                - contains oci image that umoci will then extract
 ```
