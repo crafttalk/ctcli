@@ -1,6 +1,7 @@
 package packaging
 
 import (
+	"ctcli/domain/release"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -8,6 +9,11 @@ import (
 	"os/exec"
 	"path"
 )
+
+type PackageMeta struct {
+	PackageVersion int `json:"packageVersion"`
+	ReleaseMeta release.ReleaseMeta `json:"releaseMeta"`
+}
 
 func chmodPackageBinaries(packageDir string) error {
 	if err := os.Chmod(GetPackageUmociPath(packageDir), 0775); err != nil {

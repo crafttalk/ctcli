@@ -84,19 +84,19 @@ func copyPackagesToRelease(rootDir string, packagePath string) error {
 	return nil
 }
 
-func GetCurrentCurrentReleaseInfo (currentReleaseInfoPath string) (release.TmpMeta, error) {
+func GetCurrentCurrentReleaseInfo (currentReleaseInfoPath string) (packaging.PackageMeta, error) {
 	file, err := os.Open(currentReleaseInfoPath)
 	if err != nil {
-		return release.TmpMeta{}, err
+		return packaging.PackageMeta{}, err
 	}
 	defer file.Close()
 	bytesFromFile, err := ioutil.ReadAll(file)
 	if err != nil {
-		return release.TmpMeta{}, err
+		return packaging.PackageMeta{}, err
 	}
-	var meta release.TmpMeta
+	var meta packaging.PackageMeta
 	if err := json.Unmarshal(bytesFromFile, &meta); err != nil {
-		return release.TmpMeta{}, err
+		return packaging.PackageMeta{}, err
 	}
 	return meta, nil
 }
@@ -108,7 +108,8 @@ func MakeCurrentReleaseInfoFile (rootDir string) error {
 	//	return err
 	//}
 	//currentReleaseInfo := meta.ReleaseMeta
-	//currentReleaseInfo.InstalledDate =
+	return nil
+
 }
 
 func Install(rootDir string, packagePath string) error {

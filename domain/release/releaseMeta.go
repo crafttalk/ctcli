@@ -7,17 +7,20 @@ import (
 	"time"
 )
 
-type ReleaseMeta struct {
+type AppVersion struct {
+	AppName string `json:"appName"`
+	Image string `json:"image"`
+	ImageSha string `json:"imageSha"`
 	ImageTag string `json:"imageTag"`
-	Branch string `json:"branch"`
-	CommitSha string `json:"commitSha"`
-	BuildDate time.Time `json:"buildDate"`
-	InstalledDate time.Time `json:"installedDate"`
+	CommitSha string `json:"commit"`
+	BuiltAt time.Time `json:"builtAt"`
 }
 
-type TmpMeta struct {
-	PackageVersion int `json:"packageVersion"`
-	ReleaseMeta ReleaseMeta `json:"releaseMeta"`
+type ReleaseMeta struct {
+	Id string `json:"id"`
+	PreviousRelease string `json:"baseRelease"`
+	CreatedAt string `json:"createdAt"`
+	AppVersions []AppVersion `json:"appVersions"`
 }
 
 func GetReleaseInfoFromJsonFile(filePath string) (ReleaseMeta, error) {
