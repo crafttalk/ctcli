@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"fmt"
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
@@ -12,7 +12,14 @@ var versionCmd = &cobra.Command{
 	Use: "version",
 	Short: "print the version number of CraftTalk CLI",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("CraftTalk Command Line Tool v%d -- %s", VERSION, COMMIT)
+		blue := color.New(color.FgBlue)
+		green := color.New(color.FgGreen)
+		yellow := color.New(color.FgYellow)
+
+		blue.Printf("CraftTalk Command Line Tool ")
+		green.Printf("v%d", VERSION)
+		blue.Printf(" -- ")
+		yellow.Println(COMMIT)
 	},
 }
 

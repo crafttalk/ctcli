@@ -1,6 +1,12 @@
 package packaging
 
-import "path"
+import (
+	"ctcli/domain/release"
+	"encoding/json"
+	"io/ioutil"
+	"os"
+	"path"
+)
 
 const (
 	PackageContentFolder = "package"
@@ -10,7 +16,7 @@ const (
 	SkopeoFolder = "skopeo"
 	RuncConfigJson = "config.json"
 	RuncRootFs = "rootfs"
-	MetaFile = "meta.json"
+	AppVersionFile = "version.json"
 )
 
 func GetPackageRuncPath(packageDir string) string {
@@ -27,5 +33,26 @@ func GetPackageAppsFolder(packageDir string) string {
 
 func GetPackageAppFolder(packageDir string, app string) string {
 	return path.Join(GetPackageAppsFolder(packageDir), app)
+}
+
+func GetAppVersionFilePath(packageDir string, app string) string {
+	return path.Join(GetPackageAppFolder(packageDir, app), AppVersionFile)
+}
+
+func GetVersionJsonFromFile(versionJsonFilePath string) (release.AppVersion, error) {
+	jsonFile, err := os.Open(versionJsonFilePath)
+	if err != nil {
+		return release.AppVersion{}, err
+	}
+	defer jsonFile.Close()
+
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+	var releaseMeta release.AppVersion
+	err = json.Unmarshal(byteValue, &releaseMeta)
+	if err != nil {
+		return release.AppVersion{}, err
+	}
+
+	return releaseMeta, nil
 }
 

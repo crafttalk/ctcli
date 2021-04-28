@@ -8,10 +8,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/otiai10/copy"
+	uuid "github.com/satori/go.uuid"
 	"io/ioutil"
 	"log"
 	"os"
 	"path"
+	"time"
 )
 
 func GetAppConfig(path string) (AppPackageConfig, error) {
@@ -66,7 +68,6 @@ func copyPackagesToRelease(rootDir string, packagePath string) error {
 			}
 		}
 
-		fmt.Println(appPackageConfig)
 		if appPackageConfig.LogsFolder != "" {
 			absContainerLogPath := path.Join(release.GetCurrentReleaseAppRootfsFolder(rootDir, app), appPackageConfig.LogsFolder)
 			if util.PathExists(absContainerLogPath) {
@@ -84,32 +85,31 @@ func copyPackagesToRelease(rootDir string, packagePath string) error {
 	return nil
 }
 
-func GetCurrentCurrentReleaseInfo (currentReleaseInfoPath string) (packaging.PackageMeta, error) {
-	file, err := os.Open(currentReleaseInfoPath)
-	if err != nil {
-		return packaging.PackageMeta{}, err
-	}
-	defer file.Close()
-	bytesFromFile, err := ioutil.ReadAll(file)
-	if err != nil {
-		return packaging.PackageMeta{}, err
-	}
-	var meta packaging.PackageMeta
-	if err := json.Unmarshal(bytesFromFile, &meta); err != nil {
-		return packaging.PackageMeta{}, err
-	}
-	return meta, nil
-}
+func createReleaseInfoFile(rootDir string, tempFolder string) error {
+	apps, err := packaging.GetPackageAppsList(tempFolder)
 
-func MakeCurrentReleaseInfoFile (rootDir string) error {
-	//currentReleaseInfoPath := release.GetCurrentReleaseInfoPath(rootDir)
-	//meta, err := GetCurrentCurrentReleaseInfo(currentReleaseInfoPath)
-	//if err != nil {
-	//	return err
-	//}
-	//currentReleaseInfo := meta.ReleaseMeta
-	return nil
+	releaseInfo := release.ReleaseMeta{}
 
+	if err != nil {
+		return err
+	}
+	for _, app := range apps {
+		versionPath := packaging.GetAppVersionFilePath(tempFolder, app)
+		version, err := packaging.GetVersionJsonFromFile(versionPath)
+		if err != nil {
+			return err
+		}
+
+		releaseInfo.AppVersions = append(releaseInfo.AppVersions, version)
+	}
+
+	releaseInfo.PreviousRelease = "" // Todo!
+	releaseInfo.Id = uuid.NewV4().String()
+	releaseInfo.CreatedAt = time.Now()
+
+	content, _ := json.MarshalIndent(releaseInfo, "", " ")
+	err = ioutil.WriteFile(release.GetCurrentReleaseInfoPath(rootDir), content, 0644)
+	return err
 }
 
 func Install(rootDir string, packagePath string) error {
@@ -118,6 +118,12 @@ func Install(rootDir string, packagePath string) error {
 	}
 	if !util.PathExists(rootDir) {
 		return fmt.Errorf("root dir %s doesn't exists", rootDir)
+	}
+	if err := ctcliDir.OkIfIsARootDir(rootDir); err != nil {
+		return err
+	}
+	if util.PathExists(release.GetCurrentReleaseInfoPath(rootDir)) {
+		return fmt.Errorf("current release already installed. Maybe you intended to use upgrade?")
 	}
 
 	log.Printf("Installing in root dir: %s", rootDir)
@@ -137,7 +143,7 @@ func Install(rootDir string, packagePath string) error {
 		return err
 	}
 
-	// ПОТОМ:
+	// TODO:
 	// make backup from /current-release to -> backups/<release-name>.tar.gz
 	// make backup manifest file -> backups/<release-name>.json
 
@@ -147,8 +153,9 @@ func Install(rootDir string, packagePath string) error {
 	if err := copyPackagesToRelease(rootDir, tempFolder); err != nil {
 		return err
 	}
-
-	//  tmp/meta.json -> current-release/
+	if err := createReleaseInfoFile(rootDir, tempFolder); err != nil {
+		return err
+	}
 
 	return nil
 }

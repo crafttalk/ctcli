@@ -8,6 +8,7 @@ const (
 	CurrentReleaseDir = "current-release"
 	LogsDir           = "logs"
 	ReleasesFolder    = "releases"
+	InitFile 		  = ".ctcli-init"
 )
 
 func GetTempDir(rootDir string) string {

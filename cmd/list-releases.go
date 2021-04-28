@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"ctcli/domain/ctcliDir"
 	"ctcli/domain/release"
 	"github.com/kataras/tablewriter"
 	"github.com/spf13/cobra"
@@ -8,6 +9,17 @@ import (
 	"path/filepath"
 	"sort"
 )
+
+func getAppsInRelease(appVersions []release.AppVersion)  string {
+	result := ""
+	for i, appVersion := range appVersions {
+		if i > 0 {
+			result += ", "
+		}
+		result += appVersion.Image
+	}
+	return result
+}
 
 var listReleasesCmd = &cobra.Command{
 	Use: "list-releases",
@@ -19,6 +31,10 @@ var listReleasesCmd = &cobra.Command{
 			cmd.PrintErr(err)
 			return
 		}
+		if err := ctcliDir.OkIfIsARootDir(rootDir); err != nil {
+			cmd.PrintErr(err)
+			return
+		}
 
 		releases, err := release.GetReleases(rootDir)
 		if err != nil {
@@ -27,19 +43,30 @@ var listReleasesCmd = &cobra.Command{
 		}
 
 		sort.Slice(releases, func(i, j int) bool {
-			return releases[i].BuildDate.Unix() > releases[j].BuildDate.Unix()
+			return releases[i].CreatedAt.Unix() > releases[j].CreatedAt.Unix()
 		})
 
 		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"current", "branch", "commit", "build-date"})
+		table.SetHeader([]string{"current", "branch", "commit", "build-date", "apps"})
 		tableContent := [][]string{}
 		for _, release := range releases {
-			row := []string{ " ", release.Branch, release.CommitSha, release.BuildDate.String() }
+			row := []string{
+				" ",
+				release.Id,
+				release.PreviousRelease,
+				release.CreatedAt.String(),
+				getAppsInRelease(release.AppVersions),
+			}
 			tableContent = append(tableContent, row)
 		}
 
 		if releaseInfo, err := release.GetCurrentReleaseInfo(rootDir); err == nil {
-			currentReleaseRow := []string{ "*", releaseInfo.Branch, releaseInfo.CommitSha, releaseInfo.BuildDate.String() }
+			currentReleaseRow := []string{
+				"*",
+				releaseInfo.Id,
+				releaseInfo.PreviousRelease,
+				releaseInfo.CreatedAt.String(),
+			}
 			table.Append(currentReleaseRow)
 		}
 

@@ -19,7 +19,7 @@ type AppVersion struct {
 type ReleaseMeta struct {
 	Id string `json:"id"`
 	PreviousRelease string `json:"baseRelease"`
-	CreatedAt string `json:"createdAt"`
+	CreatedAt time.Time `json:"createdAt"`
 	AppVersions []AppVersion `json:"appVersions"`
 }
 
