@@ -2,13 +2,13 @@ package cmd
 
 import (
 	"ctcli/domain/ctcliDir"
-	"fmt"
+	"ctcli/util"
 	"github.com/spf13/cobra"
 	"path/filepath"
 )
 
 var deleteCmd = &cobra.Command{
-	Use: "delete",
+	Use:   "delete",
 	Short: "delete a release",
 	Run: func(cmd *cobra.Command, args []string) {
 		rootFlag := cmd.Flag("root")
@@ -21,10 +21,15 @@ var deleteCmd = &cobra.Command{
 			cmd.PrintErr(err)
 			return
 		}
-		fmt.Println("not implemented")
+		currentReleaseDir := ctcliDir.GetCurrentReleaseDir(rootDir)
+		if err := util.RemoveContentOfFolder(currentReleaseDir); err != nil {
+			cmd.PrintErr(err)
+			return
+		}
+		cmd.Println("current release was deleted")
 	},
 }
 
-func init()  {
+func init() {
 	rootCmd.AddCommand(deleteCmd)
 }
