@@ -8,12 +8,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/otiai10/copy"
-	uuid "github.com/satori/go.uuid"
 	"io/ioutil"
 	"log"
 	"os"
 	"path"
-	"time"
 )
 
 func GetAppConfig(path string) (AppPackageConfig, error) {
@@ -86,27 +84,10 @@ func copyPackagesToRelease(rootDir string, packagePath string) error {
 }
 
 func createReleaseInfoFile(rootDir string, tempFolder string) error {
-	apps, err := packaging.GetPackageAppsList(tempFolder)
-
-	releaseInfo := release.ReleaseMeta{}
-
+	releaseInfo, err := packaging.CreateReleaseInfo(tempFolder)
 	if err != nil {
 		return err
 	}
-	for _, app := range apps {
-		versionPath := packaging.GetAppVersionFilePath(tempFolder, app)
-		version, err := packaging.GetVersionJsonFromFile(versionPath)
-		if err != nil {
-			return err
-		}
-
-		releaseInfo.AppVersions = append(releaseInfo.AppVersions, version)
-	}
-
-	releaseInfo.PreviousRelease = "" // Todo!
-	releaseInfo.Id = uuid.NewV4().String()
-	releaseInfo.CreatedAt = time.Now()
-
 	content, _ := json.MarshalIndent(releaseInfo, "", " ")
 	err = ioutil.WriteFile(release.GetCurrentReleaseInfoPath(rootDir), content, 0644)
 	return err

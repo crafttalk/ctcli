@@ -3,16 +3,18 @@ package packaging
 import (
 	"ctcli/domain/release"
 	"fmt"
+	uuid "github.com/satori/go.uuid"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 	"path"
+	"time"
 )
 
 type PackageMeta struct {
-	PackageVersion int `json:"packageVersion"`
-	ReleaseMeta release.ReleaseMeta `json:"releaseMeta"`
+	PackageVersion int                 `json:"packageVersion"`
+	ReleaseMeta    release.ReleaseMeta `json:"releaseMeta"`
 }
 
 func chmodPackageBinaries(packageDir string) error {
@@ -91,4 +93,28 @@ func GetPackageAppsList(packageFolder string) ([]string, error) {
 		result = append(result, app.Name())
 	}
 	return result, nil
+}
+
+func CreateReleaseInfo(tempFolder string) (release.ReleaseMeta, error) {
+	apps, err := GetPackageAppsList(tempFolder)
+
+	releaseInfo := release.ReleaseMeta{}
+
+	if err != nil {
+		return release.ReleaseMeta{}, err
+	}
+	for _, app := range apps {
+		versionPath := GetAppVersionFilePath(tempFolder, app)
+		version, err := GetVersionJsonFromFile(versionPath)
+		if err != nil {
+			return release.ReleaseMeta{}, err
+		}
+
+		releaseInfo.AppVersions = append(releaseInfo.AppVersions, version)
+	}
+
+	releaseInfo.PreviousRelease = "" // Todo!
+	releaseInfo.Id = uuid.NewV4().String()
+	releaseInfo.CreatedAt = time.Now()
+	return releaseInfo, nil
 }
