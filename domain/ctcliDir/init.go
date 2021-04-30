@@ -20,6 +20,11 @@ func DeleteTempDir(rootDir string) {
 	_ = os.RemoveAll(GetTempDir(rootDir))
 }
 
+func RecreateTempDir(rootDir string) {
+	DeleteTempDir(rootDir)
+	CreateTempDir(rootDir)
+}
+
 func getInitFilePath(rootDir string) string {
 	return path.Join(rootDir, InitFile)
 }

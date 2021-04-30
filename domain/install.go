@@ -112,8 +112,7 @@ func Install(rootDir string, packagePath string) error {
 	tempFolder := ctcliDir.GetTempDir(rootDir)
 	log.Printf("Extracting package %s to %s", packagePath, tempFolder)
 
-	ctcliDir.DeleteTempDir(rootDir)
-	ctcliDir.CreateTempDir(rootDir)
+	ctcliDir.RecreateTempDir(rootDir)
 
 	err := util.ExtractTarGz(packagePath, tempFolder)
 	if err != nil {
