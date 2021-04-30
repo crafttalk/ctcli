@@ -2,6 +2,7 @@ package domain
 
 import (
 	"ctcli/domain/ctcliDir"
+	"ctcli/domain/moving"
 	"ctcli/domain/packaging"
 	"ctcli/domain/release"
 	"ctcli/util"
@@ -120,13 +121,7 @@ func Upgrade(rootDir, packagePath string) error {
 
 	doUpgrade := AskDoUpgrade()
 	if doUpgrade {
-		if err := copyBinariesToRelease(rootDir, tempFolder); err != nil {
-			return err
-		}
-		if err := copyPackagesToRelease(rootDir, tempFolder); err != nil {
-			return err
-		}
-		if err := createReleaseInfoFile(rootDir, tempFolder); err != nil {
+		if err := moving.LoadRelease(rootDir, tempFolder); err != nil {
 			return err
 		}
 	} else {
