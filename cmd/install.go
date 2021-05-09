@@ -2,13 +2,14 @@ package cmd
 
 import (
 	"ctcli/domain"
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"log"
 	"path/filepath"
 )
 
 var installCmd = &cobra.Command{
-	Use: "install [path to package]",
+	Use: "install <path to package>",
 	Short: "install a release",
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -29,6 +30,7 @@ var installCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
+		color.Green("OK\n")
 	},
 }
 

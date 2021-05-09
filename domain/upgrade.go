@@ -10,6 +10,7 @@ import (
 	"github.com/fatih/color"
 	"log"
 	"os"
+	"strings"
 )
 
 func AddAppDiffToText(diffText *string, newAppVersion, currentAppVersion release.AppVersion) error {
@@ -71,14 +72,15 @@ func AskDoUpgrade() bool {
 
 	for !userAnswered {
 		fmt.Fscan(os.Stdin, &answer)
-		if answer == "Y" || answer == "Yes" {
+		answer = strings.ToLower(answer)
+		if answer == "y" || answer == "yes" {
 			userAnswered = true
 			doUpgrade = true
-		} else if answer == "N" || answer == "No" {
+		} else if answer == "n" || answer == "no" {
 			userAnswered = true
 			doUpgrade = false
 		} else {
-			fmt.Println("You need to answer \"Y\"(Yes) or \"N\"(No)")
+			fmt.Println("You need to answer \"y\"(yes) or \"n\"(no)")
 		}
 	}
 	return doUpgrade
@@ -125,6 +127,7 @@ func Upgrade(rootDir, packagePath string) error {
 			return err
 		}
 	} else {
+		return fmt.Errorf("upgrade was cancelled by user")
 		// TODO: Delete tmp folder
 	}
 	return nil

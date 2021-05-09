@@ -3,6 +3,7 @@ package cmd
 import (
 	"ctcli/domain/ctcliDir"
 	"ctcli/util"
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"path/filepath"
 )
@@ -26,7 +27,7 @@ var deleteCmd = &cobra.Command{
 			cmd.PrintErr(err)
 			return
 		}
-		cmd.Println("current release was deleted")
+		color.Green("Current release was deleted\n")
 	},
 }
 

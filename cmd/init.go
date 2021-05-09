@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"ctcli/domain/ctcliDir"
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"path/filepath"
 )
@@ -17,6 +18,7 @@ var initCmd = &cobra.Command{
 			return
 		}
 		ctcliDir.Init(rootDir)
+		color.Green("OK\n")
 	},
 }
 
