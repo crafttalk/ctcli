@@ -1,13 +1,14 @@
 package cmd
 
 import (
+	"ctcli/domain"
 	"ctcli/domain/ctcliDir"
 	"github.com/spf13/cobra"
 	"path/filepath"
 )
 
 var startCmd = &cobra.Command{
-	Use: "start [app]",
+	Use:   "start [app]",
 	Short: "start a service",
 	Run: func(cmd *cobra.Command, args []string) {
 		rootFlag := cmd.Flag("root")
@@ -20,9 +21,13 @@ var startCmd = &cobra.Command{
 			cmd.PrintErr(err)
 			return
 		}
+		if err := domain.StartApps(rootDir); err != nil {
+			cmd.PrintErr(err)
+			return
+		}
 	},
 }
 
-func init()  {
+func init() {
 	rootCmd.AddCommand(startCmd)
 }
