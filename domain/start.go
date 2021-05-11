@@ -1,13 +1,15 @@
 package domain
 
 import (
+	"ctcli/domain/ctcliDir"
 	"ctcli/domain/release"
 	"ctcli/util"
 	"fmt"
 	"github.com/fatih/color"
 	"io/ioutil"
+	"os"
 	"os/exec"
-	"time"
+	"path"
 )
 
 func StartApps(rootDir string) error {
@@ -23,31 +25,57 @@ func StartApps(rootDir string) error {
 	for _, appFolder := range appFolders {
 		appName := appFolder.Name()
 		appPath := release.GetCurrentReleaseAppFolder(rootDir, appName)
-		if err := StartApp(appName, appPath, runcPath); err != nil {
+		if err := StartApp(rootDir, appName, appPath, runcPath); err != nil {
 			color.Red(fmt.Sprintf("error while starting %s app, error: %s", appName, err))
 		}
 	}
 	return nil
 }
 
-func StartApp(appName, appPath, runcPath string) error {
+
+
+func StartApp(rootDir, appName, appPath, runcPath string) error {
 	cmd := exec.Command(
 		runcPath,
-		"run",
+		"create",
 		"--bundle",
 		appPath,
 		appName,
 	)
 
-	if err := cmd.Start(); err != nil {
+	logFilePath := ctcliDir.GetAppStdoutLogFilePath(rootDir, appName)
+	_ = os.MkdirAll(path.Dir(logFilePath), os.ModePerm)
+	if util.PathExists(logFilePath) {
+		archiveLogFilePath := ctcliDir.GetNewArchiveStdoutLogFilePath(rootDir, appName)
+		_ = os.MkdirAll(path.Dir(archiveLogFilePath), os.ModePerm)
+		_ = os.Rename(logFilePath, archiveLogFilePath)
+	}
+
+	stdout, err := os.OpenFile(logFilePath, os.O_CREATE | os.O_RDWR, os.ModePerm)
+	if err != nil {
 		return err
 	}
-	// TODO Search how to do it without sleep
-	time.Sleep(4 * time.Second)
+	cmd.Stdout = stdout
+	cmd.Stderr = stdout
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
+	cmd = exec.Command(
+		runcPath,
+		"start",
+		appName,
+	)
+	defer stdout.Close()
+
+
+	if err := cmd.Run(); err != nil {
+		return err
+	}
 
 	if err := cmd.Process.Release(); err != nil {
 		return err
 	}
-	color.Green(fmt.Sprintf("%s application started", appName))
+	color.Green(fmt.Sprintf("%s started", appName))
 	return nil
 }

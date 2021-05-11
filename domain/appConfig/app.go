@@ -17,6 +17,7 @@ type AppPackageConfig struct {
 	LogsFolder  string      `json:"logsFolder"`
 	Configs     []string    `json:"configs"`
 	Data 		[]string	`json:"data"`
+	Entrypoint  []string    `json:"entrypoint"`
 }
 
 func GetAppConfig(path string) (AppPackageConfig, error) {

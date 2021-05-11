@@ -7,6 +7,7 @@ import (
 	"github.com/fatih/color"
 	"io/ioutil"
 	"os/exec"
+	"time"
 )
 
 func StopApps(rootDir string) error {
@@ -32,6 +33,17 @@ func StopApp(appName, runcPath string) error {
 	cmd := exec.Command(
 		runcPath,
 		"kill",
+		appName,
+		"SIGTERM",
+	)
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
+	time.Sleep(time.Second)
+	cmd = exec.Command(
+		runcPath,
+		"delete",
 		appName,
 	)
 	if err := cmd.Run(); err != nil {

@@ -14,6 +14,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strings"
 )
 
 func CopyBinariesToRelease(rootDir string, packagePath string) error {
@@ -49,6 +50,15 @@ func configureRuncConfig(rootDir string, app string, config appConfig.AppPackage
 	mounts, err := jsonValue.Get("mounts").Array()
 	if err != nil {
 		return err
+	}
+
+	jsonValue.Get("process").Set("terminal", fastjson.MustParse(`false`))
+	if config.Entrypoint != nil {
+		resultValue := fastjson.MustParse("[]")
+		for i, cmdPart := range config.Entrypoint {
+			resultValue.SetArrayItem(i, fastjson.MustParse(`"` + strings.Replace(cmdPart, `"`, `\"`, -1) + `"`))
+		}
+		jsonValue.Get("process").Set("args", resultValue)
 	}
 
 	mountsMap := map[string]*fastjson.Value{}

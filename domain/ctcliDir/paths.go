@@ -1,6 +1,10 @@
 package ctcliDir
 
-import "path"
+import (
+	"fmt"
+	"path"
+	"time"
+)
 
 const (
 	TempDir           = "tmp"
@@ -42,4 +46,15 @@ func GetAppDataDir(rootDir string, app string) string {
 
 func GetAppLogsDir(rootDir string, app string) string {
 	return path.Join(GetLogsDir(rootDir), app)
+}
+
+func GetAppStdoutLogFilePath(rootDir, app string) string {
+	return path.Join(GetAppLogsDir(rootDir, app), "stdout-stderr.log")
+}
+
+func GetNewArchiveStdoutLogFilePath(rootDir, app string) string {
+	return path.Join(
+		GetAppLogsDir(rootDir, app),
+		"stdout-stderr-arch",
+		fmt.Sprintf("%s.log", time.Now().UTC().Format(time.RFC3339)))
 }
