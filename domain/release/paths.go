@@ -9,6 +9,7 @@ const (
 	RuncBinary = "runc.amd64"
 	AppsFolder = "apps"
 	PackageConfigJson = "package-config.json"
+	RuncConfigJson = "config.json"
 	RootFsFolder = "rootfs"
 	ReleasesFolder = "releases"
 )
@@ -31,6 +32,10 @@ func GetCurrentReleaseAppFolder(rootDir string, app string) string {
 
 func GetCurrentReleasePackageConfigPath(rootDir string, app string) string {
 	return path.Join(GetCurrentReleaseAppFolder(rootDir, app), PackageConfigJson)
+}
+
+func GetCurrentReleaseRuncConfigPath(rootDir string, app string) string {
+	return path.Join(GetCurrentReleaseAppFolder(rootDir, app), RuncConfigJson)
 }
 
 func GetCurrentReleaseAppRootfsFolder(rootDir string, app string) string {
