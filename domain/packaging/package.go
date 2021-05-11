@@ -35,6 +35,7 @@ func extractBlobs(umociPath string, containerTmpPath string, name string) error 
 	cmd := exec.Command(
 		umociPath,
 		"unpack",
+		"--keep-dirlinks",
 		"--rootless",
 		"--image",
 		fmt.Sprintf("%s:%s", skopeoImagePath, name),

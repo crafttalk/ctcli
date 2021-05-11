@@ -14,11 +14,20 @@ Installs a package into specified root folder. Example:
 ctcli install /path/to/package.tar.gz
 ```
 
+First it creates tmp dir and extracts an archive. Then it creates oci image config and rootfs folder. 
+Then it copies unpacked images to current-release folder. Makes symlinks for logs folder and configs.
+Creates a zero backup.
+
 ### upgrade
 Upgrades a release with binaries contained in given package. Backups previous release. Example:
 ```shell
 ctcli upgrade /path/to/package.tar.gz
 ```
+
+Creates a tmp dir and extracts the archive. Then it creates oci image configs and rootfs folders. 
+Next it checks diff between apps in package and apps in current release and prompts for upgrade.
+If user decided to upgrade, creates a backup, deletes apps from current release and copies files 
+from tmp folder to current release.
 
 ### rollback
 Install previous release
@@ -57,6 +66,7 @@ ctcli stop [app]
 /config - Services' configs
 /current-release - Current installation
 /logs - Logs
+/data - app persistent data
 /tmp - Temporary directory
 ```
 
@@ -71,4 +81,13 @@ package/    - contains package content
             ./package-config.json   - contains AppPackageConfig object
             ./version.json          - contains info about app image version 
             ./skopeo                - contains oci image that umoci will then extract
+```
+
+## Backups
+
+Backup is an archive and has following structure:
+```
+/config     - app configs
+/apps       - apps
+/data
 ```

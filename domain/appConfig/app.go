@@ -16,6 +16,7 @@ type AppPackageConfig struct {
 	Healthcheck HealthCheck `json:"healthcheck"`
 	LogsFolder  string      `json:"logsFolder"`
 	Configs     []string    `json:"configs"`
+	Data 		[]string	`json:"data"`
 }
 
 func GetAppConfig(path string) (AppPackageConfig, error) {

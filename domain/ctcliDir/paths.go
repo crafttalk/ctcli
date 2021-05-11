@@ -7,6 +7,7 @@ const (
 	ConfigDir         = "config"
 	CurrentReleaseDir = "current-release"
 	LogsDir           = "logs"
+	DataDir			  = "data"
 	ReleasesFolder    = "releases"
 	InitFile 		  = ".ctcli-init"
 )
@@ -27,8 +28,16 @@ func GetLogsDir(rootDir string) string {
 	return path.Join(rootDir, LogsDir)
 }
 
+func GetDataDir(rootDir string) string {
+	return path.Join(rootDir, DataDir)
+}
+
 func GetAppConfigDir(rootDir string, app string) string {
 	return path.Join(GetConfigDir(rootDir), app)
+}
+
+func GetAppDataDir(rootDir string, app string) string {
+	return path.Join(GetDataDir(rootDir), app)
 }
 
 func GetAppLogsDir(rootDir string, app string) string {

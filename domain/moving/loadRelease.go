@@ -24,6 +24,35 @@ func CopyBinariesToRelease(rootDir string, packagePath string) error {
 	return nil
 }
 
+func MakeConfigSymLink(absContainerConfigPath string, rootDirConfigPath string) error {
+	if util.PathExists(absContainerConfigPath) {
+		_ = os.MkdirAll(path.Dir(rootDirConfigPath), os.ModePerm)
+
+		if err := util.CopyFile(absContainerConfigPath, rootDirConfigPath); err != nil {
+			return err
+		}
+		_ = os.RemoveAll(absContainerConfigPath)
+		if err := os.Symlink(rootDirConfigPath, absContainerConfigPath); err != nil {
+			log.Printf("can not make symlink from %s to %s", rootDirConfigPath, absContainerConfigPath)
+			return err
+		}
+	}
+	return nil
+}
+
+func MakeContainerDirSymLink(containerDirPath string, rootDirPath string) error {
+	if util.PathExists(containerDirPath) {
+		_ = os.RemoveAll(containerDirPath)
+	}
+
+	_ = os.MkdirAll(rootDirPath, os.ModePerm)
+	if err := os.Symlink(rootDirPath, containerDirPath); err != nil {
+		log.Printf("can not make symlink from %s to %s", rootDirPath, containerDirPath)
+		return err
+	}
+	return nil
+}
+
 func CopyPackagesToRelease(rootDir string, packagePath string) error {
 	apps, err := packaging.GetPackageAppsList(packagePath)
 	if err != nil {
@@ -39,26 +68,24 @@ func CopyPackagesToRelease(rootDir string, packagePath string) error {
 
 		for _, configPath := range appPackageConfig.Configs {
 			absContainerConfigPath := path.Join(release.GetCurrentReleaseAppRootfsFolder(rootDir, app), configPath)
-			if util.PathExists(absContainerConfigPath) {
-				configPath := path.Join(ctcliDir.GetAppConfigDir(rootDir, app), configPath)
-				_ = os.MkdirAll(path.Dir(configPath), os.ModePerm)
-
-				if err := util.CopyFile(absContainerConfigPath, configPath); err != nil {
-					return err
-				}
+			rootDirConfigPath := path.Join(ctcliDir.GetAppConfigDir(rootDir, app), configPath)
+			if err := MakeConfigSymLink(absContainerConfigPath, rootDirConfigPath); err != nil {
+				return err
 			}
 		}
 
 		if appPackageConfig.LogsFolder != "" {
 			absContainerLogPath := path.Join(release.GetCurrentReleaseAppRootfsFolder(rootDir, app), appPackageConfig.LogsFolder)
-			if util.PathExists(absContainerLogPath) {
-				_ = os.RemoveAll(absContainerLogPath)
-			}
-
 			rootDirLogPath := ctcliDir.GetAppLogsDir(rootDir, app)
-			_ = os.MkdirAll(rootDirLogPath, os.ModePerm)
-			if err := os.Symlink(rootDirLogPath, absContainerLogPath); err != nil {
-				log.Printf("can not make symlink from %s to %s", rootDirLogPath, absContainerLogPath)
+			if err := MakeContainerDirSymLink(absContainerLogPath, rootDirLogPath); err != nil {
+				return err
+			}
+		}
+
+		for _, dataPath := range appPackageConfig.Data {
+			absContainerDataPath := path.Join(release.GetCurrentReleaseAppRootfsFolder(rootDir, app), dataPath)
+			rootDirDataPath := path.Join(ctcliDir.GetAppDataDir(rootDir, app), dataPath)
+			if err := MakeContainerDirSymLink(absContainerDataPath, rootDirDataPath); err != nil {
 				return err
 			}
 		}
@@ -77,7 +104,9 @@ func CreateReleaseInfoFile(rootDir string, tempFolder string) error {
 }
 
 func LoadRelease(rootDir, tempFolder string) error {
-	util.RemoveContentOfFolder(ctcliDir.GetCurrentReleaseDir(rootDir))
+	if err := util.RemoveContentOfFolder(ctcliDir.GetCurrentReleaseDir(rootDir)); err != nil {
+		return err
+	}
 	if err := CopyBinariesToRelease(rootDir, tempFolder); err != nil {
 		return err
 	}
