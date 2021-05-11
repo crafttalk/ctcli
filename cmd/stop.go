@@ -1,13 +1,14 @@
 package cmd
 
 import (
+	"ctcli/domain"
 	"ctcli/domain/ctcliDir"
 	"github.com/spf13/cobra"
 	"path/filepath"
 )
 
 var stopCmd = &cobra.Command{
-	Use: "stop [app]",
+	Use:   "stop [app]",
 	Short: "stops a service",
 	Run: func(cmd *cobra.Command, args []string) {
 		rootFlag := cmd.Flag("root")
@@ -20,9 +21,10 @@ var stopCmd = &cobra.Command{
 			cmd.PrintErr(err)
 			return
 		}
+		domain.StopApps(rootDir)
 	},
 }
 
-func init()  {
+func init() {
 	rootCmd.AddCommand(stopCmd)
 }
