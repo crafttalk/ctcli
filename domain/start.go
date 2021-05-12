@@ -3,6 +3,7 @@ package domain
 import (
 	"ctcli/domain/ctcliDir"
 	"ctcli/domain/release"
+	"ctcli/domain/runc"
 	"ctcli/util"
 	"fmt"
 	"github.com/fatih/color"
@@ -32,9 +33,17 @@ func StartApps(rootDir string) error {
 	return nil
 }
 
-
-
 func StartApp(rootDir, appName, appPath, runcPath string) error {
+	appStatus := runc.GetStatus(rootDir, appName)
+	if appStatus == "running" {
+		color.Green("%s already running", appName)
+		return nil
+	} else if appStatus == "stopped" {
+		if err := runc.DeleteContainer(rootDir, appName); err != nil {
+			return err
+		}
+	}
+
 	cmd := exec.Command(
 		runcPath,
 		"create",

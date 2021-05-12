@@ -2,12 +2,12 @@ package domain
 
 import (
 	"ctcli/domain/release"
+	"ctcli/domain/runc"
 	"ctcli/util"
 	"fmt"
 	"github.com/fatih/color"
 	"io/ioutil"
 	"os/exec"
-	"time"
 )
 
 func StopApps(rootDir string) error {
@@ -22,33 +22,35 @@ func StopApps(rootDir string) error {
 	}
 	for _, appFolder := range appFolders {
 		appName := appFolder.Name()
-		if err := StopApp(appName, runcPath); err != nil {
-			color.Red(fmt.Sprintf("error while stoping %s app, error: %s", appName, err))
+		if err := StopApp(rootDir, appName, runcPath); err != nil {
+			color.Red(fmt.Sprintf("error while stopping %s app, error: %s", appName, err))
 		}
 	}
 	return nil
 }
 
-func StopApp(appName, runcPath string) error {
-	cmd := exec.Command(
-		runcPath,
-		"kill",
-		appName,
-		"SIGTERM",
-	)
-	if err := cmd.Run(); err != nil {
-		return err
-	}
+func StopApp(rootDir, appName, runcPath string) error {
+	status := runc.GetStatus(rootDir, appName)
+	if status == "running" {
+		cmd := exec.Command(
+			runcPath,
+			"kill",
+			appName,
+			"SIGTERM",
+		)
+		if err := cmd.Run(); err != nil {
+			return err
+		}
 
-	time.Sleep(time.Second)
-	cmd = exec.Command(
-		runcPath,
-		"delete",
-		appName,
-	)
-	if err := cmd.Run(); err != nil {
+		runc.WaitUntilNotRunning(rootDir, appName)
+	} else if status == "unknown" {
+		color.Green(fmt.Sprintf("%s already stopped", appName))
+		return nil
+	}
+	if err := runc.DeleteContainer(rootDir, appName); err != nil {
 		return err
 	}
-	color.Green(fmt.Sprintf("%s application stoped", appName))
+	color.Green(fmt.Sprintf("%s stopped", appName))
+
 	return nil
 }

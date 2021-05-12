@@ -64,7 +64,7 @@ func configureRuncConfig(rootDir string, app string, config appConfig.AppPackage
 	mountsMap := map[string]*fastjson.Value{}
 
 	for _, mount := range mounts {
-		mountDst := mount.Get("destination").String()
+		mountDst := string(mount.GetStringBytes("destination"))
 		mountsMap[mountDst] = mount
 	}
 

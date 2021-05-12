@@ -59,6 +59,12 @@ Stops current installation. Example:
 ctcli stop [app]
 ```
 
+### status
+Show current status. Example:
+```shell
+ctcli status
+```
+
 ## Root Directory File Structure
 
 ```
