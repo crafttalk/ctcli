@@ -21,7 +21,7 @@ var startCmd = &cobra.Command{
 			cmd.PrintErr(err)
 			return
 		}
-		if err := domain.StartApps(rootDir); err != nil {
+		if err := domain.StartApps(rootDir, args); err != nil {
 			cmd.PrintErr(err)
 			return
 		}

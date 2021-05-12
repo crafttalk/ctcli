@@ -10,7 +10,7 @@ import (
 	"os/exec"
 )
 
-func StopApps(rootDir string) error {
+func StopApps(rootDir string, apps []string) error {
 	runcPath := release.GetCurrentReleaseRuncPath(rootDir)
 	if !util.PathExists(runcPath) {
 		return fmt.Errorf("there is no runc in current-relase folder")
@@ -20,10 +20,22 @@ func StopApps(rootDir string) error {
 	if err != nil {
 		return err
 	}
-	for _, appFolder := range appFolders {
-		appName := appFolder.Name()
-		if err := StopApp(rootDir, appName, runcPath); err != nil {
-			color.Red(fmt.Sprintf("error while stopping %s app, error: %s", appName, err))
+	appNames := release.GetAppNamesFromFolders(appFolders)
+	var appsToStop []string
+	if len(apps) > 0 {
+		var _appsToStop, appsNotExistInReleaseFolder = release.CheckIfAppsInReleaseFolder(apps, appNames)
+		appsToStop = _appsToStop
+		if len(appsNotExistInReleaseFolder) > 0 {
+			for _, notExistingApp := range appsNotExistInReleaseFolder {
+				color.Red(fmt.Sprintf("app with name: %s is not installed", notExistingApp))
+			}
+		}
+	} else {
+		appsToStop = appNames
+	}
+	for _, appToStop := range appsToStop {
+		if err := StopApp(rootDir, appToStop, runcPath); err != nil {
+			color.Red(fmt.Sprintf("error while stopping %s app, error: %s", appToStop, err))
 		}
 	}
 	return nil

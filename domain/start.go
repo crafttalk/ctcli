@@ -13,7 +13,7 @@ import (
 	"path"
 )
 
-func StartApps(rootDir string) error {
+func StartApps(rootDir string, apps []string) error {
 	runcPath := release.GetCurrentReleaseRuncPath(rootDir)
 	if !util.PathExists(runcPath) {
 		return fmt.Errorf("there is no runc in current-relase folder")
@@ -23,8 +23,20 @@ func StartApps(rootDir string) error {
 	if err != nil {
 		return err
 	}
-	for _, appFolder := range appFolders {
-		appName := appFolder.Name()
+	appNames := release.GetAppNamesFromFolders(appFolders)
+	var appsToStart []string
+	if len(apps) > 0 {
+		var _appsToStart, appsNotExistInReleaseFolder = release.CheckIfAppsInReleaseFolder(apps, appNames)
+		appsToStart = _appsToStart
+		if len(appsNotExistInReleaseFolder) > 0 {
+			for _, notExistingApp := range appsNotExistInReleaseFolder {
+				color.Red(fmt.Sprintf("app with name: %s is not installed", notExistingApp))
+			}
+		}
+	} else {
+		appsToStart = appNames
+	}
+	for _, appName := range appsToStart {
 		appPath := release.GetCurrentReleaseAppFolder(rootDir, appName)
 		if err := StartApp(rootDir, appName, appPath, runcPath); err != nil {
 			color.Red(fmt.Sprintf("error while starting %s app, error: %s", appName, err))
@@ -60,7 +72,7 @@ func StartApp(rootDir, appName, appPath, runcPath string) error {
 		_ = os.Rename(logFilePath, archiveLogFilePath)
 	}
 
-	stdout, err := os.OpenFile(logFilePath, os.O_CREATE | os.O_RDWR, os.ModePerm)
+	stdout, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_RDWR, os.ModePerm)
 	if err != nil {
 		return err
 	}
@@ -76,7 +88,6 @@ func StartApp(rootDir, appName, appPath, runcPath string) error {
 		appName,
 	)
 	defer stdout.Close()
-
 
 	if err := cmd.Run(); err != nil {
 		return err
