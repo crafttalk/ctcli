@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"fmt"
+	"github.com/fatih/color"
 	"io"
 	"log"
 	"os"
@@ -12,7 +13,7 @@ import (
 	"strings"
 )
 
-func ExtractTarGz (pathToGzip string, pathToExtractTo string) error {
+func ExtractTarGz(pathToGzip string, pathToExtractTo string) error {
 	gzipStream, err := os.Open(pathToGzip)
 	if err != nil {
 		log.Fatalf("ExtractTarGz: Open file descriptor failed: %s", err.Error())
@@ -72,52 +73,57 @@ func ExtractTarGz (pathToGzip string, pathToExtractTo string) error {
 	return nil
 }
 
-func ArchiveTarGz(src string, writers ...io.Writer) error {
+func ArchiveTarGz(writer io.Writer, srcs ...string) error {
 
-	// ensure the src actually exists before trying to tar it
-	if _, err := os.Stat(src); err != nil {
-		return fmt.Errorf("Unable to tar files - %v", err.Error())
-	}
-
-	mw := io.MultiWriter(writers...)
-
-	gzw := gzip.NewWriter(mw)
+	gzw := gzip.NewWriter(writer)
 	defer gzw.Close()
 
 	tw := tar.NewWriter(gzw)
 	defer tw.Close()
 
-	// walk path
-	return filepath.Walk(src, func(file string, fi os.FileInfo, err error) error {
-		if err != nil {
-			return err
+	for ind, src := range srcs {
+		// ensure the src actually exists before trying to tar it
+		if _, err := os.Stat(src); err != nil {
+			return fmt.Errorf("Unable to tar files - %v", err.Error())
 		}
 
-		if !fi.Mode().IsRegular() {
+		srcDir := filepath.Dir(src)
+		color.Green(fmt.Sprintf("starting to archive %s (%d of %d)", strings.Replace(src, srcDir, "", -1), ind+1, len(srcs)))
+		err := filepath.Walk(src, func(file string, fi os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+
+			if !fi.Mode().IsRegular() {
+				return nil
+			}
+
+			header, err := tar.FileInfoHeader(fi, fi.Name())
+			if err != nil {
+				return err
+			}
+
+			header.Name = strings.TrimPrefix(strings.Replace(file, srcDir, "", -1), string(filepath.Separator))
+			if err := tw.WriteHeader(header); err != nil {
+				return err
+			}
+
+			f, err := os.Open(file)
+			if err != nil {
+				return err
+			}
+
+			if _, err := io.Copy(tw, f); err != nil {
+				return err
+			}
+			f.Close()
+
 			return nil
-		}
-
-		header, err := tar.FileInfoHeader(fi, fi.Name())
+		})
 		if err != nil {
 			return err
 		}
 
-		header.Name = strings.TrimPrefix(strings.Replace(file, src, "", -1), string(filepath.Separator))
-
-		if err := tw.WriteHeader(header); err != nil {
-			return err
-		}
-
-		f, err := os.Open(file)
-		if err != nil {
-			return err
-		}
-
-		if _, err := io.Copy(tw, f); err != nil {
-			return err
-		}
-		f.Close()
-
-		return nil
-	})
+	}
+	return nil
 }

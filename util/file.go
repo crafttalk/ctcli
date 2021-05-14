@@ -1,6 +1,7 @@
 package util
 
 import (
+	"github.com/otiai10/copy"
 	"io"
 	"os"
 	"path"
@@ -39,6 +40,13 @@ func CopyFile(pathFrom, pathTo string) error {
 		return err
 	}
 	return out.Close()
+}
+
+func CopyDir(pathFrom, pathTo string) error {
+	if err := copy.Copy(pathFrom, pathTo); err != nil {
+		return err
+	}
+	return nil
 }
 
 func RemoveContentOfFolder(dir string) error {
