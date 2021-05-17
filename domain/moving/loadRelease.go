@@ -94,8 +94,14 @@ func configureRuncConfig(rootDir string, app string, config appConfig.AppPackage
 		rootDirConfigPath := path.Join(ctcliDir.GetAppConfigDir(rootDir, app), configPath)
 		_ = os.MkdirAll(path.Dir(rootDirConfigPath), os.ModePerm)
 		if !util.PathExists(rootDirConfigPath) {
-			if err := util.CopyFile(absContainerConfigPath, rootDirConfigPath); err != nil {
-				return err
+			if util.PathExists(absContainerConfigPath) {
+				if err := util.CopyFile(absContainerConfigPath, rootDirConfigPath); err != nil {
+					return err
+				}
+			} else {
+				if err := util.CreateEmptyFile(rootDirConfigPath); err != nil {
+					return err
+				}
 			}
 		}
 

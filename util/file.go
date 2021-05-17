@@ -49,6 +49,15 @@ func CopyDir(pathFrom, pathTo string) error {
 	return nil
 }
 
+func CreateEmptyFile(pathToFile string) error {
+	file, err := os.Create(pathToFile)
+	defer file.Close()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func RemoveContentOfFolder(dir string) error {
 	d, err := os.Open(dir)
 	if err != nil {
