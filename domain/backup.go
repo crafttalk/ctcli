@@ -18,7 +18,7 @@ const (
 
 type BackupInfo struct {
 	Uid         string              `json:"uid"`
-	BackupDate  string              `json:"backupDate"`
+	BackupDate  time.Time           `json:"backupDate"`
 	ReleaseInfo release.ReleaseMeta `json:"releaseInfo"`
 }
 
@@ -48,7 +48,7 @@ func MakeABackup(rootDir string) error {
 	}
 
 	backupUid := uuid.NewV4().String()
-	backupDate := time.Now().Format("02-01-2006 15:04:05 MST")
+	backupDate := time.Now().UTC()
 
 	backupInfo := BackupInfo{
 		Uid:         backupUid,
@@ -58,7 +58,7 @@ func MakeABackup(rootDir string) error {
 
 	releasesPath := ctcliDir.GetReleasesDir(rootDir)
 
-	currentBackupFolderPath := path.Join(releasesPath, backupDate)
+	currentBackupFolderPath := path.Join(releasesPath, backupDate.Format(time.RFC3339))
 	if err := os.Mkdir(currentBackupFolderPath, os.ModePerm); err != nil {
 		return err
 	}

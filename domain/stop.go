@@ -47,7 +47,7 @@ func StopApp(rootDir, appName, runcPath string) error {
 		cmd := exec.Command(
 			runcPath,
 			"kill",
-			appName,
+			runc.GetContainerName(rootDir, appName),
 			"SIGTERM",
 		)
 		if err := cmd.Run(); err != nil {

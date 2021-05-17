@@ -1,18 +1,24 @@
 package runc
 
 import (
+	"crypto/md5"
 	"ctcli/domain/release"
+	"fmt"
 	"github.com/valyala/fastjson"
 	"os/exec"
 	"time"
 )
+
+func GetContainerName(rootDir string, appName string) string {
+	return fmt.Sprintf("%x-%s", md5.Sum([]byte(rootDir)), appName)
+}
 
 func GetStatus(rootDir string, appName string) string {
 	runcPath := release.GetCurrentReleaseRuncPath(rootDir)
 	out, err := exec.Command(
 		runcPath,
 		"state",
-		appName,
+		GetContainerName(rootDir, appName),
 	).Output()
 	if err != nil {
 		return "unknown"
@@ -26,7 +32,7 @@ func GetPid(rootDir string, appName string) int {
 	out, err := exec.Command(
 		runcPath,
 		"state",
-		appName,
+		GetContainerName(rootDir, appName),
 	).Output()
 	if err != nil {
 		return 0
@@ -50,7 +56,7 @@ func DeleteContainer(rootDir string, appName string) error {
 	err := exec.Command(
 		runcPath,
 		"delete",
-		appName,
+		GetContainerName(rootDir, appName),
 	).Run()
 	if err != nil {
 		return err

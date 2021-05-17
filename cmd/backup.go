@@ -10,7 +10,7 @@ import (
 
 var backupCmd = &cobra.Command{
 	Use:   "backup",
-	Short: "making backup of current release",
+	Short: "make a backup of current release",
 	Run: func(cmd *cobra.Command, args []string) {
 		rootFlag := cmd.Flag("root")
 		rootDir, err := filepath.Abs(rootFlag.Value.String())

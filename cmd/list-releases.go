@@ -76,5 +76,5 @@ var listReleasesCmd = &cobra.Command{
 }
 
 func init()  {
-	rootCmd.AddCommand(listReleasesCmd)
+	//rootCmd.AddCommand(listReleasesCmd)
 }

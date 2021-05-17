@@ -24,5 +24,5 @@ var rollbackCmd = &cobra.Command{
 }
 
 func init()  {
-	rootCmd.AddCommand(rollbackCmd)
+	//rootCmd.AddCommand(rollbackCmd)
 }

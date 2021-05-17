@@ -61,7 +61,7 @@ func StartApp(rootDir, appName, appPath, runcPath string) error {
 		"create",
 		"--bundle",
 		appPath,
-		appName,
+		runc.GetContainerName(rootDir, appName),
 	)
 
 	logFilePath := ctcliDir.GetAppStdoutLogFilePath(rootDir, appName)
@@ -85,7 +85,7 @@ func StartApp(rootDir, appName, appPath, runcPath string) error {
 	cmd = exec.Command(
 		runcPath,
 		"start",
-		appName,
+		runc.GetContainerName(rootDir, appName),
 	)
 	defer stdout.Close()
 
