@@ -55,6 +55,21 @@ func StopApp(rootDir, appName, runcPath string) error {
 		}
 
 		runc.WaitUntilNotRunning(rootDir, appName)
+
+		status := runc.GetStatus(rootDir, appName)
+		if status == "running" {
+			cmd := exec.Command(
+				runcPath,
+				"kill",
+				runc.GetContainerName(rootDir, appName),
+				"SIGKILL",
+			)
+			if err := cmd.Run(); err != nil {
+				return err
+			}
+
+			runc.WaitUntilNotRunning(rootDir, appName)
+		}
 	} else if status == "unknown" {
 		color.Green(fmt.Sprintf("%s already stopped", appName))
 		return nil
