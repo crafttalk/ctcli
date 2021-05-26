@@ -8,6 +8,12 @@ Shows help
 ### version
 Shows version
 
+### init 
+Initializes specified root directory as a ctcli dir.
+```shell
+ctcli --root /path/to/dir init
+```
+
 ### install
 Installs a package into specified root folder. Example:
 ```shell
@@ -29,18 +35,6 @@ Next it checks diff between apps in package and apps in current release and prom
 If user decided to upgrade, creates a backup, deletes apps from current release and copies files 
 from tmp folder to current release.
 
-### rollback
-Install previous release
-```shell
-ctcli rollback
-```
-
-### list-releases
-Shows full list of releases and highlights current release.
-```shell
-ctcli list-releases
-```
-
 ### delete
 Deletes a release completely. Example:
 ```shell
@@ -59,10 +53,42 @@ Stops current installation. Example:
 ctcli stop [app]
 ```
 
+### logs
+Shows logs (stdout/stderr) of specified service. Example:
+```shell
+ctcli logs <app>
+```
+
 ### status
 Show current status. Example:
 ```shell
 ctcli status
+```
+
+### backup
+Makes an archive containing `current-release/`, `data/` and `config/` folders and puts it into `releases/` folder  
+```shell
+ctcli backup
+```
+
+### release-info
+Shows current release app list and each app version
+```shell
+ctcli release-info
+```
+
+## To Be Done
+
+### rollback
+Install previous release
+```shell
+ctcli rollback
+```
+
+### list-releases
+Shows full list of releases and highlights current release.
+```shell
+ctcli list-releases
 ```
 
 ## Root Directory File Structure
