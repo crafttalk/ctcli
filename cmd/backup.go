@@ -20,9 +20,16 @@ var backupCmd = &cobra.Command{
 			cmd.PrintErr(err)
 			return
 		}
+
+		backupDataFlag := cmd.Flag("ignore-data")
+		backupData := false
+		if backupDataFlag.Value.String() == "false" {
+			backupData = true
+		}
+
 		fn := util.MirrorStdoutToFile(ctcliDir.GetCtcliLogFilePath(rootDir))
 		defer fn()
-		if err := domain.MakeABackup(rootDir); err != nil {
+		if err := domain.MakeABackup(rootDir, backupData); err != nil {
 			log.Fatal(err)
 		}
 		color.Green("backup was made\n")
@@ -31,4 +38,5 @@ var backupCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(backupCmd)
+	backupCmd.Flags().Bool("ignore-data", false, "Do not include data folder into backup")
 }

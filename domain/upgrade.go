@@ -130,5 +130,8 @@ func Upgrade(rootDir, packagePath string) error {
 		return fmt.Errorf("upgrade was cancelled by user")
 		// TODO: Delete tmp folder
 	}
+
+	log.Printf("Cleaning up tmp folder\n")
+	ctcliDir.DeleteTempDir(rootDir)
 	return nil
 }

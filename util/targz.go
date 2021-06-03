@@ -47,7 +47,10 @@ func ExtractTarGz(pathToGzip string, pathToExtractTo string) error {
 				return err
 			}
 		case tar.TypeReg:
-			outFile, err := os.Create(path.Join(pathToExtractTo, header.Name))
+			filePath := path.Join(pathToExtractTo, header.Name)
+			_ = os.MkdirAll(path.Dir(filePath), os.ModePerm)
+
+			outFile, err := os.OpenFile(path.Join(pathToExtractTo, header.Name), os.O_RDWR | os.O_CREATE, os.FileMode(header.Mode))
 			if err != nil {
 				log.Fatalf("ExtractTarGz: Create() failed: %s", err.Error())
 				return err
@@ -88,7 +91,7 @@ func ArchiveTarGz(writer io.Writer, srcs ...string) error {
 		}
 
 		srcDir := filepath.Dir(src)
-		color.Green(fmt.Sprintf("starting to archive %s (%d of %d)", strings.Replace(src, srcDir, "", -1), ind+1, len(srcs)))
+		color.HiGreen(fmt.Sprintf("starting to archive %s (%d of %d)", strings.Replace(src, srcDir, "", -1), ind+1, len(srcs)))
 		err := filepath.Walk(src, func(file string, fi os.FileInfo, err error) error {
 			if err != nil {
 				return err

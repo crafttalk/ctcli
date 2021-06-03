@@ -47,5 +47,9 @@ func Install(rootDir string, packagePath string) error {
 	if err := moving.LoadRelease(rootDir, tempFolder); err != nil {
 		return err
 	}
+
+	log.Printf("Cleaning up tmp folder\n")
+	ctcliDir.DeleteTempDir(rootDir)
+
 	return nil
 }

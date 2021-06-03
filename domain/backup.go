@@ -33,7 +33,7 @@ func MakeBackupInfoFile(backupInfoFilePath string, backupInfo BackupInfo) error 
 	return nil
 }
 
-func MakeABackup(rootDir string) error {
+func MakeABackup(rootDir string, backupData bool) error {
 	if err := ctcliDir.OkIfIsARootDir(rootDir); err != nil {
 		return err
 	}
@@ -70,8 +70,15 @@ func MakeABackup(rootDir string) error {
 	tarfile, err := os.Create(path.Join(currentBackupFolderPath, backupUid+".tar.gz"))
 	defer tarfile.Close()
 
-	if err = util.ArchiveTarGz(tarfile, currentReleasePath, dataPath, configPath); err != nil {
-		return err
+	if backupData {
+		if err = util.ArchiveTarGz(tarfile, currentReleasePath, dataPath, configPath); err != nil {
+			return err
+		}
+	} else {
+		if err = util.ArchiveTarGz(tarfile, currentReleasePath, configPath); err != nil {
+			return err
+		}
 	}
+
 	return nil
 }
