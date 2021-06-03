@@ -14,7 +14,13 @@ func MirrorStdoutToFile(logFile string) func() {
 	// open file read/write | create if not exist | clear file at open if exists
 	f, _ := os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 
+	wd, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	fmt.Fprintf(f, "\n=== %s ===\n", time.Now())
+	fmt.Fprintf(f, "Working directory: %s\n", wd)
 	fmt.Fprintf(f, "> %s\n", strings.Join(os.Args, " "))
 
 	// save existing stdout | MultiWriter writes to saved stdout and file
