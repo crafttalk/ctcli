@@ -3,6 +3,7 @@ package cmd
 import (
 	"ctcli/domain/ctcliDir"
 	"ctcli/domain/release"
+	"ctcli/util"
 	"github.com/kataras/tablewriter"
 	"github.com/spf13/cobra"
 	"os"
@@ -35,6 +36,8 @@ var listReleasesCmd = &cobra.Command{
 			cmd.PrintErr(err)
 			return
 		}
+		fn := util.MirrorStdoutToFile(ctcliDir.GetCtcliLogFilePath(rootDir))
+		defer fn()
 
 		releases, err := release.GetReleases(rootDir)
 		if err != nil {

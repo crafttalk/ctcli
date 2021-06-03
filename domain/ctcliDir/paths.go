@@ -62,3 +62,7 @@ func GetNewArchiveStdoutLogFilePath(rootDir, app string) string {
 		"stdout-stderr-arch",
 		fmt.Sprintf("%s.log", time.Now().UTC().Format(time.RFC3339)))
 }
+
+func GetCtcliLogFilePath(rootDir string) string {
+	return path.Join(GetLogsDir(rootDir), "ctcli.log")
+}

@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"ctcli/domain"
+	"ctcli/domain/ctcliDir"
+	"ctcli/util"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"log"
@@ -18,6 +20,8 @@ var backupCmd = &cobra.Command{
 			cmd.PrintErr(err)
 			return
 		}
+		fn := util.MirrorStdoutToFile(ctcliDir.GetCtcliLogFilePath(rootDir))
+		defer fn()
 		if err := domain.MakeABackup(rootDir); err != nil {
 			log.Fatal(err)
 		}

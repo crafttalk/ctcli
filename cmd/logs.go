@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"ctcli/domain/ctcliDir"
+	"ctcli/util"
 	"fmt"
 	"github.com/spf13/cobra"
 	"io/ioutil"
@@ -23,6 +24,8 @@ var logsCmd = &cobra.Command{
 			cmd.PrintErr(err)
 			return
 		}
+		fn := util.MirrorStdoutToFile(ctcliDir.GetCtcliLogFilePath(rootDir))
+		defer fn()
 
 		appName := args[0]
 		logFilePath := ctcliDir.GetAppStdoutLogFilePath(rootDir, appName)

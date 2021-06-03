@@ -28,6 +28,8 @@ var statusCmd = &cobra.Command{
 			cmd.PrintErr(err)
 			return
 		}
+		fn := util.MirrorStdoutToFile(ctcliDir.GetCtcliLogFilePath(rootDir))
+		defer fn()
 
 		runcPath := release.GetCurrentReleaseRuncPath(rootDir)
 		if !util.PathExists(runcPath) {

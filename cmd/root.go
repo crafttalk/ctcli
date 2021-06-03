@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"github.com/spf13/cobra"
 	"log"
 	"os"
@@ -17,7 +16,7 @@ var rootCmd = &cobra.Command{
 
 func Execute()  {
 	//rootCmd.SetArgs([]string{ "--root", "/home/lkmfwe/ctcli", "install", "/home/lkmfwe/Programming/FSharp/opbot/packaging/package/crafttalk-opbot-release-2021-03-22-6-commit.tar.gz" })
-	//rootCmd.SetArgs([]string{ "--root", "/home/lkmfwe/ctcli", "start" })
+	//rootCmd.SetArgs([]string{ "--root", "/home/lkmfwe/ctcli", "init" })
 
 	workDir, err := os.Getwd()
 	if err != nil {
@@ -26,7 +25,6 @@ func Execute()  {
 	rootCmd.PersistentFlags().String("root", workDir, "root of the installation")
 
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 }
