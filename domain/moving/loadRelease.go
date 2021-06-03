@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"ctcli/domain/appConfig"
 	"ctcli/domain/ctcliDir"
+	"ctcli/domain/lifetime"
 	"ctcli/domain/packaging"
 	"ctcli/domain/release"
 	"ctcli/util"
@@ -19,9 +20,6 @@ import (
 
 func CopyBinariesToRelease(rootDir string, packagePath string) error {
 	if err := copy.Copy(packaging.GetPackageRuncPath(packagePath), release.GetCurrentReleaseRuncPath(rootDir)); err != nil {
-		return err
-	}
-	if err := copy.Copy(packaging.GetPackageAppsFolder(packagePath), release.GetCurrentReleaseAppsFolder(rootDir)); err != nil {
 		return err
 	}
 	return nil
@@ -138,7 +136,19 @@ func CopyPackagesToRelease(rootDir string, packagePath string) error {
 		return err
 	}
 
+	if err := lifetime.StopApps(rootDir, apps); err != nil {
+		return err
+	}
+
 	for _, app := range apps {
+		appInReleaseDir := release.GetCurrentReleaseAppFolder(rootDir, app)
+		if err := util.RemoveContentOfFolder(appInReleaseDir); err != nil {
+			return err
+		}
+		if err := copy.Copy(packaging.GetPackageAppFolder(packagePath, app), appInReleaseDir); err != nil {
+			return err
+		}
+
 		appPackageConfigPath := release.GetCurrentReleasePackageConfigPath(rootDir, app)
 		appPackageConfig, err := appConfig.GetAppConfig(appPackageConfigPath)
 		if err != nil {
@@ -149,11 +159,16 @@ func CopyPackagesToRelease(rootDir string, packagePath string) error {
 			return err
 		}
 	}
+
+	if err := lifetime.StartApps(rootDir, apps); err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func CreateReleaseInfoFile(rootDir string, tempFolder string) error {
-	releaseInfo, err := packaging.CreateReleaseInfo(tempFolder)
+func CreateReleaseInfoFile(rootDir string) error {
+	releaseInfo, err := release.CreateReleaseInfo(rootDir)
 	if err != nil {
 		return err
 	}
@@ -163,16 +178,13 @@ func CreateReleaseInfoFile(rootDir string, tempFolder string) error {
 }
 
 func LoadRelease(rootDir, tempFolder string) error {
-	if err := util.RemoveContentOfFolder(ctcliDir.GetCurrentReleaseDir(rootDir)); err != nil {
-		return err
-	}
 	if err := CopyBinariesToRelease(rootDir, tempFolder); err != nil {
 		return err
 	}
 	if err := CopyPackagesToRelease(rootDir, tempFolder); err != nil {
 		return err
 	}
-	if err := CreateReleaseInfoFile(rootDir, tempFolder); err != nil {
+	if err := CreateReleaseInfoFile(rootDir); err != nil {
 		return err
 	}
 	return nil

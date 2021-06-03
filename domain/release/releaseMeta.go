@@ -39,3 +39,20 @@ func GetReleaseInfoFromJsonFile(filePath string) (ReleaseMeta, error) {
 
 	return releaseMeta, nil
 }
+
+func GetVersionJsonFromFile(versionJsonFilePath string) (AppVersion, error) {
+	jsonFile, err := os.Open(versionJsonFilePath)
+	if err != nil {
+		return AppVersion{}, err
+	}
+	defer jsonFile.Close()
+
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+	var releaseMeta AppVersion
+	err = json.Unmarshal(byteValue, &releaseMeta)
+	if err != nil {
+		return AppVersion{}, err
+	}
+
+	return releaseMeta, nil
+}

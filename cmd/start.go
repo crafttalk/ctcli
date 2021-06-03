@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"ctcli/domain"
 	"ctcli/domain/ctcliDir"
+	"ctcli/domain/lifetime"
 	"ctcli/util"
 	"github.com/spf13/cobra"
 	"path/filepath"
@@ -24,7 +24,7 @@ var startCmd = &cobra.Command{
 		}
 		fn := util.MirrorStdoutToFile(ctcliDir.GetCtcliLogFilePath(rootDir))
 		defer fn()
-		if err := domain.StartApps(rootDir, args); err != nil {
+		if err := lifetime.StartApps(rootDir, args); err != nil {
 			cmd.PrintErr(err)
 			return
 		}

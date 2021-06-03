@@ -106,7 +106,7 @@ func CreateReleaseInfo(tempFolder string) (release.ReleaseMeta, error) {
 	}
 	for _, app := range apps {
 		versionPath := GetAppVersionFilePath(tempFolder, app)
-		version, err := GetVersionJsonFromFile(versionPath)
+		version, err := release.GetVersionJsonFromFile(versionPath)
 		if err != nil {
 			return release.ReleaseMeta{}, err
 		}

@@ -1,4 +1,4 @@
-package domain
+package lifetime
 
 import (
 	"ctcli/domain/release"

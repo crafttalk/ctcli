@@ -15,10 +15,10 @@ import (
 
 func AddAppDiffToText(diffText *string, newAppVersion, currentAppVersion release.AppVersion) error {
 	appKeyColor := color.New(color.FgHiCyan)
-	appValueColor := color.New(color.FgRed)
-	oldKeyColor := color.New(color.FgYellow)
-	newKeyColor := color.New(color.FgGreen)
-	keyValueColor := color.New(color.FgBlue)
+	appValueColor := color.New(color.FgHiRed)
+	oldKeyColor := color.New(color.FgHiYellow)
+	newKeyColor := color.New(color.FgHiGreen)
+	keyValueColor := color.New(color.FgHiBlue)
 
 	*diffText += appKeyColor.Sprintf("  app: ")
 	*diffText += appValueColor.Sprintln(newAppVersion.AppName)
