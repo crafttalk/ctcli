@@ -34,7 +34,7 @@ var installCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		color.Green("OK\n")
+		color.HiGreen("OK\n")
 	},
 }
 

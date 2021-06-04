@@ -1,132 +1,58 @@
 package util
 
 import (
-	"archive/tar"
-	"compress/gzip"
-	"fmt"
-	"github.com/fatih/color"
-	"io"
 	"log"
 	"os"
+	"os/exec"
 	"path"
-	"path/filepath"
 	"strings"
 )
 
-func ExtractTarGz(pathToGzip string, pathToExtractTo string) error {
-	gzipStream, err := os.Open(pathToGzip)
-	if err != nil {
-		log.Fatalf("ExtractTarGz: Open file descriptor failed: %s", err.Error())
+func ExtractTarGz(archivePath string, pathToExtractTo string) error {
+	args := append([]string{ "-xzvf", archivePath, "-C", pathToExtractTo })
+
+	log.Printf("tar %s\n", strings.Join(args, " "))
+
+	cmd := exec.Command(
+		"tar",
+		args...
+	)
+
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
 		return err
 	}
 
-	uncompressedStream, err := gzip.NewReader(gzipStream)
-	if err != nil {
-		log.Fatal("ExtractTarGz: NewReader failed")
+	if err := cmd.Process.Release(); err != nil {
 		return err
-	}
-
-	tarReader := tar.NewReader(uncompressedStream)
-
-	for true {
-		header, err := tarReader.Next()
-
-		if err == io.EOF {
-			break
-		}
-
-		if err != nil {
-			log.Fatalf("ExtractTarGz: Next() failed: %s", err.Error())
-			return err
-		}
-
-		switch header.Typeflag {
-		case tar.TypeDir:
-			if err := os.Mkdir(path.Join(pathToExtractTo, header.Name), 0755); err != nil {
-				log.Fatalf("ExtractTarGz: Mkdir() failed: %s", err.Error())
-				return err
-			}
-		case tar.TypeReg:
-			filePath := path.Join(pathToExtractTo, header.Name)
-			_ = os.MkdirAll(path.Dir(filePath), os.ModePerm)
-
-			outFile, err := os.OpenFile(path.Join(pathToExtractTo, header.Name), os.O_RDWR | os.O_CREATE, os.FileMode(header.Mode))
-			if err != nil {
-				log.Fatalf("ExtractTarGz: Create() failed: %s", err.Error())
-				return err
-			}
-			if _, err := io.Copy(outFile, tarReader); err != nil {
-				log.Fatalf("ExtractTarGz: Copy() failed: %s", err.Error())
-				return err
-			}
-			if err := outFile.Close(); err != nil {
-				log.Fatalf("ExtractTarGz: Close() failed: %s", err.Error())
-				return err
-			}
-
-		default:
-			log.Fatalf(
-				"ExtractTarGz: uknown type: %s in %s",
-				header.Typeflag,
-				header.Name)
-			return err
-		}
-
 	}
 	return nil
 }
 
-func ArchiveTarGz(writer io.Writer, srcs ...string) error {
+func ArchiveTarGz(archivePath string, srcs ...string) error {
+	sourceDir := path.Dir(srcs[0])
+	for i, src := range srcs {
+		srcs[i] = strings.Replace(src, sourceDir + "/", "", -1)
+	}
 
-	gzw := gzip.NewWriter(writer)
-	defer gzw.Close()
+	args := append([]string{ "-czvf", archivePath, "-C", sourceDir }, srcs...)
 
-	tw := tar.NewWriter(gzw)
-	defer tw.Close()
+	log.Printf("tar %s\n", strings.Join(args, " "))
 
-	for ind, src := range srcs {
-		// ensure the src actually exists before trying to tar it
-		if _, err := os.Stat(src); err != nil {
-			return fmt.Errorf("Unable to tar files - %v", err.Error())
-		}
+	cmd := exec.Command(
+		"tar",
+		args...
+	)
 
-		srcDir := filepath.Dir(src)
-		color.HiGreen(fmt.Sprintf("starting to archive %s (%d of %d)", strings.Replace(src, srcDir, "", -1), ind+1, len(srcs)))
-		err := filepath.Walk(src, func(file string, fi os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
+	cmd.Stderr = os.Stderr
 
-			if !fi.Mode().IsRegular() {
-				return nil
-			}
+	if err := cmd.Run(); err != nil {
+		return err
+	}
 
-			header, err := tar.FileInfoHeader(fi, fi.Name())
-			if err != nil {
-				return err
-			}
-
-			header.Name = strings.TrimPrefix(strings.Replace(file, srcDir, "", -1), string(filepath.Separator))
-			if err := tw.WriteHeader(header); err != nil {
-				return err
-			}
-
-			f, err := os.Open(file)
-			if err != nil {
-				return err
-			}
-
-			if _, err := io.Copy(tw, f); err != nil {
-				return err
-			}
-			f.Close()
-
-			return nil
-		})
-		if err != nil {
-			return err
-		}
-
+	if err := cmd.Process.Release(); err != nil {
+		return err
 	}
 	return nil
 }

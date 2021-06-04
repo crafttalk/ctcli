@@ -29,7 +29,7 @@ var deleteCmd = &cobra.Command{
 			cmd.PrintErr(err)
 			return
 		}
-		color.Green("Current release was deleted\n")
+		color.HiGreen("Current release was deleted\n")
 	},
 }
 

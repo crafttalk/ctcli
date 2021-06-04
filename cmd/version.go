@@ -5,16 +5,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const VERSION int = 4
+const VERSION int = 5
 const COMMIT string = "%%commit_hash%%"
 
 var versionCmd = &cobra.Command{
 	Use: "version",
 	Short: "print the version number of CraftTalk CLI",
 	Run: func(cmd *cobra.Command, args []string) {
-		blue := color.New(color.FgBlue)
-		green := color.New(color.FgGreen)
-		yellow := color.New(color.FgYellow)
+		blue := color.New(color.FgHiBlue)
+		green := color.New(color.FgHiGreen)
+		yellow := color.New(color.FgHiYellow)
 
 		blue.Printf("CraftTalk Command Line Tool ")
 		green.Printf("v%d", VERSION)

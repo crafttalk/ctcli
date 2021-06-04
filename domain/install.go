@@ -40,10 +40,6 @@ func Install(rootDir string, packagePath string) error {
 		return err
 	}
 
-	// TODO:
-	// make backup from /current-release to -> backups/<release-name>.tar.gz
-	// make backup manifest file -> backups/<release-name>.json
-
 	if err := moving.LoadRelease(rootDir, tempFolder); err != nil {
 		return err
 	}

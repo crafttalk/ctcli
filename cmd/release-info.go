@@ -33,16 +33,16 @@ var releaseInfoCmd = &cobra.Command{
 			return
 		}
 
-		nameColor := color.New(color.FgBlue)
-		valueColor := color.New(color.FgGreen)
+		nameColor := color.New(color.FgHiBlue)
+		valueColor := color.New(color.FgHiGreen)
 
-		subNameColor := color.New(color.FgYellow)
-		subValueColor := color.New(color.FgCyan)
+		subNameColor := color.New(color.FgHiYellow)
+		subValueColor := color.New(color.FgHiCyan)
 
 		appVersionsString := ""
 		for _, appVersion := range releaseInfo.AppVersions {
 			appVersionsString += subNameColor.Sprintf("  app: ")
-			appVersionsString += color.New(color.FgRed).Sprintln(appVersion.AppName)
+			appVersionsString += color.New(color.FgHiRed).Sprintln(appVersion.AppName)
 			appVersionsString += subNameColor.Sprintf("    image: ")
 			appVersionsString += subValueColor.Sprintln(appVersion.Image)
 			appVersionsString += subNameColor.Sprintf("    built at: ")
@@ -62,7 +62,7 @@ var releaseInfoCmd = &cobra.Command{
 		nameColor.Printf("created at: ")
 		valueColor.Println(releaseInfo.CreatedAt)
 
-		color.Blue("app versions:")
+		color.HiBlue("app versions:")
 		fmt.Print(appVersionsString)
 	},
 }

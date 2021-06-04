@@ -67,8 +67,11 @@ ctcli status
 
 ### backup
 Makes an archive containing `current-release/`, `data/` and `config/` folders and puts it into `releases/` folder  
+
+* `--ignore-data` flag disables `data/` folder backup
+
 ```shell
-ctcli backup
+ctcli backup [--ignore-data]
 ```
 
 ### release-info
@@ -77,13 +80,13 @@ Shows current release app list and each app version
 ctcli release-info
 ```
 
-## To Be Done
-
 ### rollback
 Install previous release
 ```shell
-ctcli rollback
+ctcli rollback /path/to/archive.tar.gz
 ```
+
+## To Be Done
 
 ### list-releases
 Shows full list of releases and highlights current release.

@@ -27,7 +27,7 @@ func StopApps(rootDir string, apps []string) error {
 		appsToStop = _appsToStop
 		if len(appsNotExistInReleaseFolder) > 0 {
 			for _, notExistingApp := range appsNotExistInReleaseFolder {
-				color.Red(fmt.Sprintf("app with name: %s is not installed", notExistingApp))
+				color.HiRed(fmt.Sprintf("app with name: %s is not installed", notExistingApp))
 			}
 		}
 	} else {
@@ -35,7 +35,7 @@ func StopApps(rootDir string, apps []string) error {
 	}
 	for _, appToStop := range appsToStop {
 		if err := StopApp(rootDir, appToStop, runcPath); err != nil {
-			color.Red(fmt.Sprintf("error while stopping %s app, error: %s", appToStop, err))
+			color.HiRed(fmt.Sprintf("error while stopping %s app, error: %s", appToStop, err))
 		}
 	}
 	return nil
@@ -71,13 +71,13 @@ func StopApp(rootDir, appName, runcPath string) error {
 			runc.WaitUntilNotRunning(rootDir, appName)
 		}
 	} else if status == "unknown" {
-		color.Green(fmt.Sprintf("%s already stopped", appName))
+		color.HiGreen(fmt.Sprintf("%s already stopped", appName))
 		return nil
 	}
 	if err := runc.DeleteContainer(rootDir, appName); err != nil {
 		return err
 	}
-	color.Green(fmt.Sprintf("%s stopped", appName))
+	color.HiGreen(fmt.Sprintf("%s stopped", appName))
 
 	return nil
 }

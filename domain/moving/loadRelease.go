@@ -137,14 +137,12 @@ func CopyPackagesToRelease(rootDir string, packagePath string) error {
 	}
 
 	if err := lifetime.StopApps(rootDir, apps); err != nil {
-		return err
+		//log.Printf("Error while stopping apps: %s\n", err)
 	}
 
 	for _, app := range apps {
 		appInReleaseDir := release.GetCurrentReleaseAppFolder(rootDir, app)
-		if err := util.RemoveContentOfFolder(appInReleaseDir); err != nil {
-			return err
-		}
+		_ = os.RemoveAll(appInReleaseDir)
 		if err := copy.Copy(packaging.GetPackageAppFolder(packagePath, app), appInReleaseDir); err != nil {
 			return err
 		}

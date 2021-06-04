@@ -30,7 +30,7 @@ func StartApps(rootDir string, apps []string) error {
 		appsToStart = _appsToStart
 		if len(appsNotExistInReleaseFolder) > 0 {
 			for _, notExistingApp := range appsNotExistInReleaseFolder {
-				color.Red(fmt.Sprintf("app with name: %s is not installed", notExistingApp))
+				color.HiRed(fmt.Sprintf("app with name: %s is not installed", notExistingApp))
 			}
 		}
 	} else {
@@ -39,7 +39,7 @@ func StartApps(rootDir string, apps []string) error {
 	for _, appName := range appsToStart {
 		appPath := release.GetCurrentReleaseAppFolder(rootDir, appName)
 		if err := StartApp(rootDir, appName, appPath, runcPath); err != nil {
-			color.Red(fmt.Sprintf("error while starting %s app, error: %s", appName, err))
+			color.HiRed(fmt.Sprintf("error while starting %s app, error: %s", appName, err))
 		}
 	}
 	return nil
@@ -48,7 +48,7 @@ func StartApps(rootDir string, apps []string) error {
 func StartApp(rootDir, appName, appPath, runcPath string) error {
 	appStatus := runc.GetStatus(rootDir, appName)
 	if appStatus == "running" {
-		color.Green("%s already running", appName)
+		color.HiGreen("%s already running", appName)
 		return nil
 	} else if appStatus == "stopped" {
 		if err := runc.DeleteContainer(rootDir, appName); err != nil {
@@ -96,6 +96,6 @@ func StartApp(rootDir, appName, appPath, runcPath string) error {
 	if err := cmd.Process.Release(); err != nil {
 		return err
 	}
-	color.Green(fmt.Sprintf("%s started", appName))
+	color.HiGreen(fmt.Sprintf("%s started", appName))
 	return nil
 }

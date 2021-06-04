@@ -32,7 +32,7 @@ var backupCmd = &cobra.Command{
 		if err := domain.MakeABackup(rootDir, backupData); err != nil {
 			log.Fatal(err)
 		}
-		color.Green("backup was made\n")
+		color.HiGreen("backup was made\n")
 	},
 }
 

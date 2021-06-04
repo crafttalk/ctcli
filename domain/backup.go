@@ -58,7 +58,7 @@ func MakeABackup(rootDir string, backupData bool) error {
 
 	releasesPath := ctcliDir.GetReleasesDir(rootDir)
 
-	currentBackupFolderPath := path.Join(releasesPath, backupDate.Format(time.RFC3339))
+	currentBackupFolderPath := path.Join(releasesPath, backupDate.Format("2006-01-02_15-04-05"))
 	if err := os.Mkdir(currentBackupFolderPath, os.ModePerm); err != nil {
 		return err
 	}
@@ -67,15 +67,14 @@ func MakeABackup(rootDir string, backupData bool) error {
 		return err
 	}
 
-	tarfile, err := os.Create(path.Join(currentBackupFolderPath, backupUid+".tar.gz"))
-	defer tarfile.Close()
+	archivePath := path.Join(currentBackupFolderPath, backupUid+".tar.gz")
 
 	if backupData {
-		if err = util.ArchiveTarGz(tarfile, currentReleasePath, dataPath, configPath); err != nil {
+		if err = util.ArchiveTarGz(archivePath, currentReleasePath, dataPath, configPath); err != nil {
 			return err
 		}
 	} else {
-		if err = util.ArchiveTarGz(tarfile, currentReleasePath, configPath); err != nil {
+		if err = util.ArchiveTarGz(archivePath, currentReleasePath, configPath); err != nil {
 			return err
 		}
 	}
