@@ -58,6 +58,8 @@ func StartApp(rootDir, appName, appPath, runcPath string) error {
 
 	cmd := exec.Command(
 		runcPath,
+		"--root",
+		ctcliDir.GetRuncRoot(rootDir),
 		"create",
 		"--bundle",
 		appPath,
@@ -84,6 +86,8 @@ func StartApp(rootDir, appName, appPath, runcPath string) error {
 
 	cmd = exec.Command(
 		runcPath,
+		"--root",
+		ctcliDir.GetRuncRoot(rootDir),
 		"start",
 		runc.GetContainerName(rootDir, appName),
 	)

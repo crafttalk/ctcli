@@ -1,6 +1,7 @@
 package lifetime
 
 import (
+	"ctcli/domain/ctcliDir"
 	"ctcli/domain/release"
 	"ctcli/domain/runc"
 	"ctcli/util"
@@ -46,6 +47,8 @@ func StopApp(rootDir, appName, runcPath string) error {
 	if status == "running" {
 		cmd := exec.Command(
 			runcPath,
+			"--root",
+			ctcliDir.GetRuncRoot(rootDir),
 			"kill",
 			runc.GetContainerName(rootDir, appName),
 			"SIGTERM",
@@ -60,6 +63,8 @@ func StopApp(rootDir, appName, runcPath string) error {
 		if status == "running" {
 			cmd := exec.Command(
 				runcPath,
+				"--root",
+				ctcliDir.GetRuncRoot(rootDir),
 				"kill",
 				runc.GetContainerName(rootDir, appName),
 				"SIGKILL",

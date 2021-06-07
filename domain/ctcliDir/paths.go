@@ -66,3 +66,7 @@ func GetNewArchiveStdoutLogFilePath(rootDir, app string) string {
 func GetCtcliLogFilePath(rootDir string) string {
 	return path.Join(GetLogsDir(rootDir), "ctcli.log")
 }
+
+func GetRuncRoot(rootDir string) string {
+	return path.Join(rootDir, "runc-root")
+}

@@ -97,12 +97,13 @@ ctcli list-releases
 ## Root Directory File Structure
 
 ```
-/releases - Previous releases and etc.
-/config - Services' configs
-/current-release - Current installation
-/logs - Logs
-/data - app persistent data
-/tmp - Temporary directory
+/releases           - Previous releases and etc.
+/config             - Services' configs
+/current-release    - Current installation
+/logs               - Logs
+/data               - app persistent data
+/runc-root          - runc containers root dir 
+/tmp                - Temporary directory
 ```
 
 ## Package structure
