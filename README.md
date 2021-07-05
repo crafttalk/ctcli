@@ -69,6 +69,12 @@ Show current status. Example:
 ctcli status
 ```
 
+### exec
+Execute a command inside a container. Example:
+```shell
+ctcli exec busybox cat /etc/hosts
+```
+
 ### backup
 Makes an archive containing `current-release/`, `data/` and `config/` folders and puts it into `releases/` folder  
 
