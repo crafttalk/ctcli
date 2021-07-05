@@ -70,3 +70,17 @@ func DeleteContainer(rootDir string, appName string) error {
 	}
 	return nil
 }
+
+func CreateContainer(rootDir string, appName string) *exec.Cmd {
+	runcPath := release.GetCurrentReleaseRuncPath(rootDir)
+	appPath := release.GetCurrentReleaseAppFolder(rootDir, appName)
+	return exec.Command(
+		runcPath,
+		"--root",
+		ctcliDir.GetRuncRoot(rootDir),
+		"create",
+		"--bundle",
+		appPath,
+		GetContainerName(rootDir, appName),
+	)
+}

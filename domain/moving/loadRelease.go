@@ -74,6 +74,9 @@ func configureRuncConfig(rootDir string, app string, config appConfig.AppPackage
 		_ = os.MkdirAll(rootDirLogPath, os.ModePerm)
 		mountsMap[config.LogsFolder] = createMountValue(rootDirLogPath, config.LogsFolder)
 	}
+
+	mountsMap["/etc/hosts"] = createMountValue("/etc/hosts", "/etc/hosts")
+
 	for _, dataPath := range config.Data {
 		if _, contains := mountsMap[dataPath]; contains {
 			delete(mountsMap, dataPath)
@@ -156,10 +159,6 @@ func CopyPackagesToRelease(rootDir string, packagePath string) error {
 		if err := configureRuncConfig(rootDir, app, appPackageConfig, release.GetCurrentReleaseRuncConfigPath(rootDir, app)); err != nil {
 			return err
 		}
-	}
-
-	if err := lifetime.StartApps(rootDir, apps); err != nil {
-		return err
 	}
 
 	return nil

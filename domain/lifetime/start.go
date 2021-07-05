@@ -37,15 +37,14 @@ func StartApps(rootDir string, apps []string) error {
 		appsToStart = appNames
 	}
 	for _, appName := range appsToStart {
-		appPath := release.GetCurrentReleaseAppFolder(rootDir, appName)
-		if err := StartApp(rootDir, appName, appPath, runcPath); err != nil {
+		if err := StartApp(rootDir, appName, runcPath); err != nil {
 			color.HiRed(fmt.Sprintf("error while starting %s app, error: %s", appName, err))
 		}
 	}
 	return nil
 }
 
-func StartApp(rootDir, appName, appPath, runcPath string) error {
+func StartApp(rootDir, appName, runcPath string) error {
 	appStatus := runc.GetStatus(rootDir, appName)
 	if appStatus == "running" {
 		color.HiGreen("%s already running", appName)
@@ -56,15 +55,7 @@ func StartApp(rootDir, appName, appPath, runcPath string) error {
 		}
 	}
 
-	cmd := exec.Command(
-		runcPath,
-		"--root",
-		ctcliDir.GetRuncRoot(rootDir),
-		"create",
-		"--bundle",
-		appPath,
-		runc.GetContainerName(rootDir, appName),
-	)
+	cmd := runc.CreateContainer(rootDir, appName)
 
 	logFilePath := ctcliDir.GetAppStdoutLogFilePath(rootDir, appName)
 	_ = os.MkdirAll(path.Dir(logFilePath), os.ModePerm)

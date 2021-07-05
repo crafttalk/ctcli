@@ -56,8 +56,12 @@ ctcli stop [app]
 ### logs
 Shows logs (stdout/stderr) of specified service. Example:
 ```shell
-ctcli logs <app>
+ctcli logs [--tail <n>] [-f] <app>
 ```
+
+Options:
+* `--tail 100` - Show latest 100 bytes
+* `-f` - Follow log file 
 
 ### status
 Show current status. Example:

@@ -2,6 +2,7 @@ package release
 
 import (
 	"ctcli/domain/ctcliDir"
+	"ctcli/util"
 	"path"
 )
 const (
@@ -28,6 +29,11 @@ func GetCurrentReleaseAppsFolder(rootDir string) string {
 
 func GetCurrentReleaseAppFolder(rootDir string, app string) string {
 	return path.Join(GetCurrentReleaseAppsFolder(rootDir), app)
+}
+
+func CurrentReleaseAppExists(rootDir string, app string) bool {
+	return util.PathExists(GetCurrentReleaseAppFolder(rootDir, app)) &&
+		   util.PathExists(GetCurrentReleaseRuncConfigPath(rootDir, app))
 }
 
 func GetCurrentReleasePackageConfigPath(rootDir string, app string) string {
