@@ -1,0 +1,12 @@
+{
+    "baseImage": "gitlab.crafttalk.ru:5005/aibotdev/core/opbot/siebelintegration:{{ imageTag }}",
+    "healthcheck": {
+      "command": [ "curl", "http://localhost:8181/healthz" ],
+      "waitFor": 3
+    },
+    "logsFolder": "/runtime/logs",
+    "configs": [
+      "/config/config.json",
+      "/bin/NLog.config"
+    ]
+}

@@ -6,7 +6,7 @@ import (
 )
 
 func TestGetReleaseInfoFromJsonFile(t *testing.T) {
-	releaseInfo, err := GetReleaseInfoFromJsonFile("/home/lkmfwe/ctcli/backups/some-release.json")
+	releaseInfo, err := GetReleaseInfoFromJsonFile("../../data/test-package.json")
 	if err != nil {
 		t.Error(err)
 	}

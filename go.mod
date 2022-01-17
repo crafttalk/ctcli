@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/fatih/color v1.10.0
-	github.com/hpcloud/tail v1.0.0 // indirect
+	github.com/hpcloud/tail v1.0.0
 	github.com/kataras/tablewriter v0.0.0-20180708051242-e063d29b7c23
 	github.com/mattn/go-runewidth v0.0.12 // indirect
 	github.com/otiai10/copy v1.5.1
