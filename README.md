@@ -1,5 +1,8 @@
 # ctcli - CraftTalk Command Line Tool
 
+[![Actions Status](https://github.com/crafttalk/ctcli/workflows/build-and-test/badge.svg)](https://github.com/crafttalk/ctcli/actions)
+[![codecov](https://codecov.io/gh/crafttalk/ctcli/branch/master/graph/badge.svg)](https://codecov.io/gh/crafttalk/ctcli)
+
 ## Commands
 
 ### help
