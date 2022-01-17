@@ -1,22 +1,25 @@
 package release
 
 import (
+	"ctcli/domain/ctcliDir"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"testing"
 )
 
 func TestListReleases(t *testing.T) {
-	releases, err := GetReleases("/home/lkmfwe/ctcli");
+	rootDir, err := ioutil.TempDir("/tmp/", "ctcli")
+	if err != nil {
+		t.Error(err)
+	}
+	defer os.RemoveAll(rootDir)
+
+	ctcliDir.Init(rootDir)
+
+	releases, err := GetReleases(rootDir)
 	if err != nil {
 		t.Errorf("folder was not found!")
-	}
-	fmt.Println(releases)
-}
-
-func TestGetCurrentReleaseInfo(t *testing.T) {
-	releases, err := GetCurrentReleaseInfo("/home/lkmfwe/ctcli");
-	if err != nil {
-		t.Errorf("release info was not found!")
 	}
 	fmt.Println(releases)
 }
