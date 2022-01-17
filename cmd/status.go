@@ -6,12 +6,13 @@ import (
 	"ctcli/domain/runc"
 	"ctcli/util"
 	"fmt"
-	"github.com/kataras/tablewriter"
-	"github.com/spf13/cobra"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
+
+	"github.com/kataras/tablewriter"
+	"github.com/spf13/cobra"
 )
 
 var statusCmd = &cobra.Command{
@@ -61,6 +62,7 @@ var statusCmd = &cobra.Command{
 		}
 
 		table.AppendBulk(tableContent)
+		table.SetOutput(cmd.OutOrStdout())
 		table.Render()
 	},
 }
