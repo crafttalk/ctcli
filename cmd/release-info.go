@@ -4,14 +4,14 @@ import (
 	"ctcli/domain/ctcliDir"
 	"ctcli/domain/release"
 	"ctcli/util"
-	"fmt"
+	"path/filepath"
+
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
-	"path/filepath"
 )
 
 var releaseInfoCmd = &cobra.Command{
-	Use: "release-info",
+	Use:   "release-info",
 	Short: "get current release info",
 	Run: func(cmd *cobra.Command, args []string) {
 		rootFlag := cmd.Flag("root")
@@ -53,20 +53,20 @@ var releaseInfoCmd = &cobra.Command{
 			appVersionsString += subValueColor.Sprintln(appVersion.ImageSha)
 		}
 
-		nameColor.Printf("id: ")
-		valueColor.Println(releaseInfo.Id)
+		cmd.Printf("%s", nameColor.Sprintf("id: "))
+		cmd.Printf("%s\n", valueColor.Sprintf(releaseInfo.Id))
 
-		nameColor.Printf("prev release: ")
-		valueColor.Println(releaseInfo.PreviousRelease)
+		cmd.Printf("%s", nameColor.Sprintf("prev release: "))
+		cmd.Printf("%s\n", valueColor.Sprintf(releaseInfo.PreviousRelease))
 
-		nameColor.Printf("created at: ")
-		valueColor.Println(releaseInfo.CreatedAt)
+		cmd.Printf("%s", nameColor.Sprintf("created at: "))
+		cmd.Printf("%s\n", valueColor.Sprint(releaseInfo.CreatedAt))
 
-		color.HiBlue("app versions:")
-		fmt.Print(appVersionsString)
+		cmd.Print(color.HiBlueString("app versions:\n"))
+		cmd.Print(appVersionsString)
 	},
 }
 
-func init()  {
+func init() {
 	rootCmd.AddCommand(releaseInfoCmd)
 }

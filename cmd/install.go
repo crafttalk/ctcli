@@ -4,16 +4,17 @@ import (
 	"ctcli/domain"
 	"ctcli/domain/ctcliDir"
 	"ctcli/util"
-	"github.com/fatih/color"
-	"github.com/spf13/cobra"
 	"log"
 	"path/filepath"
+
+	"github.com/fatih/color"
+	"github.com/spf13/cobra"
 )
 
 var installCmd = &cobra.Command{
-	Use: "install <path to package>",
+	Use:   "install <path to package>",
 	Short: "install a release",
-	Args: cobra.ExactArgs(1),
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		packagePath, err := filepath.Abs(args[0])
 		if err != nil {
@@ -34,10 +35,10 @@ var installCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		color.HiGreen("OK\n")
+		cmd.Printf("%s", color.HiGreenString("OK\n"))
 	},
 }
 
-func init()  {
+func init() {
 	rootCmd.AddCommand(installCmd)
 }

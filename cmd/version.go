@@ -9,20 +9,23 @@ const VERSION int = 7
 const COMMIT string = "%%commit_hash%%"
 
 var versionCmd = &cobra.Command{
-	Use: "version",
+	Use:   "version",
 	Short: "print the version number of CraftTalk CLI",
 	Run: func(cmd *cobra.Command, args []string) {
 		blue := color.New(color.FgHiBlue)
 		green := color.New(color.FgHiGreen)
 		yellow := color.New(color.FgHiYellow)
 
-		blue.Printf("CraftTalk Command Line Tool ")
-		green.Printf("v%d", VERSION)
-		blue.Printf(" -- ")
-		yellow.Println(COMMIT)
+		cmd.Printf(
+			"%s %s %s %s\n",
+			blue.Sprintf("CraftTalk Command Line Tool"),
+			green.Sprintf("v%d", VERSION),
+			blue.Sprintf("--"),
+			yellow.Sprintf(COMMIT),
+		)
 	},
 }
 
-func init()  {
+func init() {
 	rootCmd.AddCommand(versionCmd)
 }
