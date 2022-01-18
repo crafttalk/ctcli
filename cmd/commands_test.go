@@ -103,7 +103,7 @@ func TestInstallAndStartStop(t *testing.T) {
 	t.Log(out)
 
 	// В докер окружениях невозможно запустить рутлес контейнеры(
-	if !(strings.Contains(out, "Starting") || strings.Contains(out, "mapping tool not present: Operation not permitted")) {
+	if !(strings.Contains(out, "Starting") || strings.Contains(out, "mapping tool not present: Operation not permitted") || strings.Contains(out, "failed to use newuid map")) {
 		t.Fatalf("Failed to start a service")
 	}
 
