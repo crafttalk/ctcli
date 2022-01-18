@@ -11,7 +11,7 @@ const COMMIT string = "%%commit_hash%%"
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "print the version number of CraftTalk CLI",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		blue := color.New(color.FgHiBlue)
 		green := color.New(color.FgHiGreen)
 		yellow := color.New(color.FgHiYellow)
@@ -23,6 +23,7 @@ var versionCmd = &cobra.Command{
 			blue.Sprintf("--"),
 			yellow.Sprintf(COMMIT),
 		)
+		return nil
 	},
 }
 

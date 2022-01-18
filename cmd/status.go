@@ -5,7 +5,6 @@ import (
 	"ctcli/domain/release"
 	"ctcli/domain/runc"
 	"ctcli/util"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -18,23 +17,21 @@ import (
 var statusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "shows current status",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		rootFlag := cmd.Flag("root")
 		rootDir, err := filepath.Abs(rootFlag.Value.String())
 		if err != nil {
-			cmd.PrintErr(err)
-			return
+			return err
 		}
 		if err := ctcliDir.OkIfIsARootDir(rootDir); err != nil {
-			cmd.PrintErr(err)
-			return
+			return err
 		}
 		fn := util.MirrorStdoutToFile(ctcliDir.GetCtcliLogFilePath(rootDir))
 		defer fn()
 
 		runcPath := release.GetCurrentReleaseRuncPath(rootDir)
 		if !util.PathExists(runcPath) {
-			cmd.PrintErr(fmt.Errorf("there is no runc in current-relase folder"))
+			cmd.PrintErr("there is no runc in current-relase folder")
 		}
 		appsPath := release.GetCurrentReleaseAppsFolder(rootDir)
 		appFolders, err := ioutil.ReadDir(appsPath)
@@ -64,6 +61,8 @@ var statusCmd = &cobra.Command{
 		table.AppendBulk(tableContent)
 		table.SetOutput(cmd.OutOrStdout())
 		table.Render()
+
+		return nil
 	},
 }
 

@@ -11,7 +11,7 @@ import (
 func GetRootDir(t *testing.T) string {
 	rootDir, err := ioutil.TempDir("/tmp/", "ctcli")
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	return rootDir
 }
@@ -19,6 +19,7 @@ func GetRootDir(t *testing.T) string {
 func RunCommand(t *testing.T, args []string) string {
 
 	b := bytes.NewBufferString("")
+
 	rootCmd.SetArgs(args)
 	rootCmd.SetOut(b)
 	rootCmd.Execute()
@@ -37,7 +38,7 @@ func TestVersion(t *testing.T) {
 	out := RunCommand(t, []string{"--root", rootDir, "version"})
 
 	if strings.HasPrefix("CraftTalk Command Line Tool", out) {
-		t.Errorf("Version string is incorrect: %s!", out)
+		t.Fatalf("Version string is incorrect: %s!", out)
 	}
 }
 
@@ -48,21 +49,21 @@ func TestInitAndStatus(t *testing.T) {
 	out := RunCommand(t, []string{"--root", rootDir, "init"})
 
 	if !strings.Contains(out, "OK") {
-		t.Error("Init returned non-ok result")
+		t.Fatalf("Init returned non-ok result")
 	}
 
 	out = RunCommand(t, []string{"--root", rootDir, "status"})
 
 	if !strings.Contains(out, "APP-NAME") {
-		t.Error("Status table didn't contain the APP-NAME column")
+		t.Fatalf("Status table didn't contain the APP-NAME column: %s", out)
 	}
 
 	if !strings.Contains(out, "STATUS") {
-		t.Error("Status table didn't contain the STATUS column")
+		t.Fatal("Status table didn't contain the STATUS column")
 	}
 
 	if !strings.Contains(out, "PID") {
-		t.Error("Status table didn't contain the PID column")
+		t.Fatal("Status table didn't contain the PID column")
 	}
 }
 
@@ -73,28 +74,43 @@ func TestInstallAndStartStop(t *testing.T) {
 	out := RunCommand(t, []string{"--root", rootDir, "init"})
 
 	if !strings.Contains(out, "OK") {
-		t.Error("Init returned non-ok result")
+		t.Fatal("Init returned non-ok result")
 	}
 
 	out = RunCommand(t, []string{"--root", rootDir, "install", "../data/test-package.tar.gz"})
 
 	if !strings.Contains(out, "OK") {
-		t.Errorf("Install was not successful: %s", out)
+		t.Fatalf("Install was not successful: %s", out)
 	}
 
 	out = RunCommand(t, []string{"--root", rootDir, "release-info"})
 
 	if !strings.Contains(out, "siebelintegration") {
-		t.Errorf("siebelintegration not present in status: %s", out)
+		t.Fatalf("siebelintegration not present in status: %s", out)
 	}
 
 	if !strings.Contains(out, "4aac9f7cafa6bd8dd78069ddc22f066228e48c67c6a12c90085dad10785ee230") {
-		t.Errorf("siebelintegration image sha is incorrect: %s", out)
+		t.Fatalf("siebelintegration image sha is incorrect: %s", out)
 	}
 
 	if !strings.Contains(out, "0") {
-		t.Errorf("Pid != 0: %s", out)
+		t.Fatalf("Pid != 0: %s", out)
 	}
-
 	out = RunCommand(t, []string{"--root", rootDir, "start"})
+	t.Log(out)
+
+	out = RunCommand(t, []string{"--root", rootDir, "logs", "siebelintegration"})
+
+	// В докер окружениях невозможно запустить рутлес контейнеры(
+	if !(strings.Contains(out, "Starting") || strings.Contains(out, "mapping tool not present: Operation not permitted")) {
+		t.Fatalf("Failed to start a service")
+	}
+	t.Log(out)
+
+	out = RunCommand(t, []string{"--root", rootDir, "status"})
+	t.Log(out)
+
+	// if strings.Contains(out, "0") {
+	// 	t.Fatal("Process failed to start")
+	// }
 }

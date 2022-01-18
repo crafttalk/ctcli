@@ -10,12 +10,13 @@ import (
 	"ctcli/util"
 	"encoding/json"
 	"fmt"
-	"github.com/otiai10/copy"
-	"github.com/valyala/fastjson"
 	"io/ioutil"
 	"os"
 	"path"
 	"strings"
+
+	"github.com/otiai10/copy"
+	"github.com/valyala/fastjson"
 )
 
 func CopyBinariesToRelease(rootDir string, packagePath string) error {
@@ -32,6 +33,19 @@ func createMountValue(pathFrom string, pathTo string) *fastjson.Value {
 	result.Set("type", fastjson.MustParse(`"bind"`))
 	result.Set("options", fastjson.MustParse(`["noexec", "nosuid", "rbind"]`))
 	return result
+}
+
+func jsonArrayToString(elems []*fastjson.Value) string {
+	resultJson := ""
+	i := 0
+	for _, elem := range elems {
+		if i > 0 {
+			resultJson += ","
+		}
+		resultJson += elem.String()
+		i++
+	}
+	return "[" + resultJson + "]"
 }
 
 func configureRuncConfig(rootDir string, app string, config appConfig.AppPackageConfig, runcConfigPath string) error {
@@ -54,7 +68,7 @@ func configureRuncConfig(rootDir string, app string, config appConfig.AppPackage
 	if config.Entrypoint != nil {
 		resultValue := fastjson.MustParse("[]")
 		for i, cmdPart := range config.Entrypoint {
-			resultValue.SetArrayItem(i, fastjson.MustParse(`"` + strings.Replace(cmdPart, `"`, `\"`, -1) + `"`))
+			resultValue.SetArrayItem(i, fastjson.MustParse(`"`+strings.Replace(cmdPart, `"`, `\"`, -1)+`"`))
 		}
 		jsonValue.Get("process").Set("args", resultValue)
 	}
@@ -109,19 +123,30 @@ func configureRuncConfig(rootDir string, app string, config appConfig.AppPackage
 		mountsMap[configPath] = createMountValue(rootDirConfigPath, configPath)
 	}
 
-	resultMountsJson := ""
-	i := 0
-	for _, mount := range mountsMap {
-		if i > 0 {
-			resultMountsJson += ","
-		}
-		resultMountsJson += mount.String()
-		i++
+	values := []*fastjson.Value{}
+	for _, value := range mountsMap {
+		values = append(values, value)
 	}
 
-	jsonValue.Set("mounts", fastjson.MustParse("[" + resultMountsJson + "]"))
-	resultJson := []byte(jsonValue.String())
+	resultMountsJson := jsonArrayToString(values)
 
+	jsonValue.Set("mounts", fastjson.MustParse(resultMountsJson))
+
+	uidMappings := jsonValue.Get("linux").GetArray("uidMappings")
+	gidMappings := jsonValue.Get("linux").GetArray("gidMappings")
+
+	newUidMapping := fastjson.MustParse("{}")
+	newUidMapping.Set("containerID", fastjson.MustParse("1"))
+	newUidMapping.Set("hostID", fastjson.MustParse("100000"))
+	newUidMapping.Set("size", fastjson.MustParse("65536"))
+
+	uidMappings = append(uidMappings, newUidMapping)
+	gidMappings = append(gidMappings, newUidMapping)
+
+	jsonValue.Get("linux").Set("uidMappings", fastjson.MustParse(jsonArrayToString(uidMappings)))
+	jsonValue.Get("linux").Set("gidMappings", fastjson.MustParse(jsonArrayToString(gidMappings)))
+
+	resultJson := []byte(jsonValue.String())
 	buf := bytes.Buffer{}
 	if err := json.Indent(&buf, resultJson, "", "    "); err != nil {
 		return err

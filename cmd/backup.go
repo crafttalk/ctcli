@@ -4,21 +4,20 @@ import (
 	"ctcli/domain"
 	"ctcli/domain/ctcliDir"
 	"ctcli/util"
+	"path/filepath"
+
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
-	"log"
-	"path/filepath"
 )
 
 var backupCmd = &cobra.Command{
 	Use:   "backup",
 	Short: "make a backup of current release",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		rootFlag := cmd.Flag("root")
 		rootDir, err := filepath.Abs(rootFlag.Value.String())
 		if err != nil {
-			cmd.PrintErr(err)
-			return
+			return err
 		}
 
 		backupDataFlag := cmd.Flag("ignore-data")
@@ -30,9 +29,10 @@ var backupCmd = &cobra.Command{
 		fn := util.MirrorStdoutToFile(ctcliDir.GetCtcliLogFilePath(rootDir))
 		defer fn()
 		if err := domain.MakeABackup(rootDir, backupData); err != nil {
-			log.Fatal(err)
+			return err
 		}
-		color.HiGreen("backup was made\n")
+		cmd.Printf("%s", color.HiGreenString("backup was made\n"))
+		return nil
 	},
 }
 

@@ -3,33 +3,32 @@ package cmd
 import (
 	"ctcli/domain/ctcliDir"
 	"ctcli/util"
+	"path/filepath"
+
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
-	"path/filepath"
 )
 
 var deleteCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "delete a release",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		rootFlag := cmd.Flag("root")
 		rootDir, err := filepath.Abs(rootFlag.Value.String())
 		if err != nil {
-			cmd.PrintErr(err)
-			return
+			return err 
 		}
 		if err := ctcliDir.OkIfIsARootDir(rootDir); err != nil {
-			cmd.PrintErr(err)
-			return
+			return err
 		}
 		fn := util.MirrorStdoutToFile(ctcliDir.GetCtcliLogFilePath(rootDir))
 		defer fn()
 		currentReleaseDir := ctcliDir.GetCurrentReleaseDir(rootDir)
 		if err := util.RemoveContentOfFolder(currentReleaseDir); err != nil {
-			cmd.PrintErr(err)
-			return
+			return err
 		}
-		color.HiGreen("Current release was deleted\n")
+		cmd.Printf(color.HiGreenString("Current release was deleted\n"))
+		return nil
 	},
 }
 

@@ -3,29 +3,27 @@ package cmd
 import (
 	"ctcli/domain/ctcliDir"
 	"ctcli/util"
-	"fmt"
-	"github.com/fatih/color"
-	"github.com/hpcloud/tail"
-	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
 	"strconv"
+
+	"github.com/fatih/color"
+	"github.com/hpcloud/tail"
+	"github.com/spf13/cobra"
 )
 
 var logsCmd = &cobra.Command{
-	Use: "logs <app>",
+	Use:   "logs <app>",
 	Short: "show stdout and stderr of an app",
-	Args: cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
 		rootFlag := cmd.Flag("root")
 		rootDir, err := filepath.Abs(rootFlag.Value.String())
 		if err != nil {
-			cmd.PrintErr(err)
-			return
+			return err
 		}
 		if err := ctcliDir.OkIfIsARootDir(rootDir); err != nil {
-			cmd.PrintErr(err)
-			return
+			return err
 		}
 		fn := util.MirrorStdoutToFile(ctcliDir.GetCtcliLogFilePath(rootDir))
 		defer fn()
@@ -56,15 +54,17 @@ var logsCmd = &cobra.Command{
 
 		for line := range t.Lines {
 			if follow {
-				fmt.Printf("[%s] %s\n", color.HiBlueString("%s", line.Time), line.Text)
+				cmd.Printf("[%s] %s\n", color.HiBlueString("%s", line.Time), line.Text)
 			} else {
-				fmt.Println(line.Text)
+				cmd.Println(line.Text)
 			}
 		}
+
+		return nil
 	},
 }
 
-func init()  {
+func init() {
 	rootCmd.AddCommand(logsCmd)
 	logsCmd.Flags().BoolP("follow", "f", false, "Follow logs")
 	logsCmd.Flags().Int32("tail", 0, "Tail logs")
