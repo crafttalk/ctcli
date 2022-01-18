@@ -33,3 +33,8 @@ jobs:
         file: ./coverage.txt
         flags: unittests
         name: codecov-umbrella
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: ctcli-binary
+        path: ./ctcli
