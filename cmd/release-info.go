@@ -13,24 +13,21 @@ import (
 var releaseInfoCmd = &cobra.Command{
 	Use:   "release-info",
 	Short: "get current release info",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		rootFlag := cmd.Flag("root")
 		rootDir, err := filepath.Abs(rootFlag.Value.String())
 		if err != nil {
-			cmd.PrintErr(err)
-			return
+			return err
 		}
 		if err := ctcliDir.OkIfIsARootDir(rootDir); err != nil {
-			cmd.PrintErr(err)
-			return
+			return err
 		}
 		fn := util.MirrorStdoutToFile(ctcliDir.GetCtcliLogFilePath(rootDir))
 		defer fn()
 
 		releaseInfo, err := release.GetCurrentReleaseInfo(rootDir)
 		if err != nil {
-			cmd.PrintErr(err)
-			return
+			return err
 		}
 
 		nameColor := color.New(color.FgHiBlue)
@@ -64,6 +61,7 @@ var releaseInfoCmd = &cobra.Command{
 
 		cmd.Print(color.HiBlueString("app versions:\n"))
 		cmd.Print(appVersionsString)
+		return nil
 	},
 }
 

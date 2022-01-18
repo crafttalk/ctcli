@@ -4,7 +4,6 @@ import (
 	"ctcli/domain"
 	"ctcli/domain/ctcliDir"
 	"ctcli/util"
-	"log"
 	"path/filepath"
 
 	"github.com/fatih/color"
@@ -15,27 +14,26 @@ var installCmd = &cobra.Command{
 	Use:   "install <path to package>",
 	Short: "install a release",
 	Args:  cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		packagePath, err := filepath.Abs(args[0])
 		if err != nil {
-			cmd.PrintErr(err)
-			return
+			return err
 		}
 
 		rootFlag := cmd.Flag("root")
 		rootDir, err := filepath.Abs(rootFlag.Value.String())
 		if err != nil {
-			cmd.PrintErr(err)
-			return
+			return err
 		}
 		fn := util.MirrorStdoutToFile(ctcliDir.GetCtcliLogFilePath(rootDir))
 		defer fn()
 
 		err = domain.Install(rootDir, packagePath)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		cmd.Printf("%s", color.HiGreenString("OK\n"))
+		return nil
 	},
 }
 

@@ -4,30 +4,30 @@ import (
 	"ctcli/domain/ctcliDir"
 	"ctcli/domain/lifetime"
 	"ctcli/util"
-	"github.com/spf13/cobra"
 	"path/filepath"
+
+	"github.com/spf13/cobra"
 )
 
 var startCmd = &cobra.Command{
 	Use:   "start [app]",
 	Short: "start a service",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		rootFlag := cmd.Flag("root")
 		rootDir, err := filepath.Abs(rootFlag.Value.String())
 		if err != nil {
-			cmd.PrintErr(err)
-			return
+			return err
 		}
 		if err := ctcliDir.OkIfIsARootDir(rootDir); err != nil {
-			cmd.PrintErr(err)
-			return
+			return err
 		}
 		fn := util.MirrorStdoutToFile(ctcliDir.GetCtcliLogFilePath(rootDir))
 		defer fn()
 		if err := lifetime.StartApps(rootDir, args); err != nil {
-			cmd.PrintErr(err)
-			return
+			return err
 		}
+		cmd.Println("OK")
+		return nil
 	},
 }
 

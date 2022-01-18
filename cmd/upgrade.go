@@ -4,31 +4,29 @@ import (
 	"ctcli/domain"
 	"ctcli/domain/ctcliDir"
 	"ctcli/util"
-	"github.com/fatih/color"
-	"github.com/spf13/cobra"
 	"log"
 	"path/filepath"
+
+	"github.com/fatih/color"
+	"github.com/spf13/cobra"
 )
 
 var upgradeCmd = &cobra.Command{
 	Use:   "upgrade <path to package>",
 	Short: "upgrade a release",
-	Args: cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
 		rootFlag := cmd.Flag("root")
 		rootDir, err := filepath.Abs(rootFlag.Value.String())
 		if err != nil {
-			cmd.PrintErr(err)
-			return
+			return err
 		}
 		packagePath, err := filepath.Abs(args[0])
 		if err != nil {
-			cmd.PrintErr(err)
-			return
+			return err
 		}
 		if err := ctcliDir.OkIfIsARootDir(rootDir); err != nil {
-			cmd.PrintErr(err)
-			return
+			return err
 		}
 		fn := util.MirrorStdoutToFile(ctcliDir.GetCtcliLogFilePath(rootDir))
 		defer fn()
@@ -37,6 +35,8 @@ var upgradeCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 		color.Green("OK\n")
+
+		return err
 	},
 }
 

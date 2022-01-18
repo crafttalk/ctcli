@@ -4,14 +4,14 @@ import (
 	"ctcli/domain/ctcliDir"
 	"ctcli/domain/release"
 	"ctcli/util"
-	"github.com/kataras/tablewriter"
-	"github.com/spf13/cobra"
-	"os"
 	"path/filepath"
 	"sort"
+
+	"github.com/kataras/tablewriter"
+	"github.com/spf13/cobra"
 )
 
-func getAppsInRelease(appVersions []release.AppVersion)  string {
+func getAppsInRelease(appVersions []release.AppVersion) string {
 	result := ""
 	for i, appVersion := range appVersions {
 		if i > 0 {
@@ -23,33 +23,31 @@ func getAppsInRelease(appVersions []release.AppVersion)  string {
 }
 
 var listReleasesCmd = &cobra.Command{
-	Use: "list-releases",
+	Use:   "list-releases",
 	Short: "list all installed releases",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		rootFlag := cmd.Flag("root")
 		rootDir, err := filepath.Abs(rootFlag.Value.String())
+
 		if err != nil {
-			cmd.PrintErr(err)
-			return
+			return err
 		}
 		if err := ctcliDir.OkIfIsARootDir(rootDir); err != nil {
-			cmd.PrintErr(err)
-			return
+			return err
 		}
 		fn := util.MirrorStdoutToFile(ctcliDir.GetCtcliLogFilePath(rootDir))
 		defer fn()
 
 		releases, err := release.GetReleases(rootDir)
 		if err != nil {
-			cmd.PrintErr(err)
-			return
+			return err
 		}
 
 		sort.Slice(releases, func(i, j int) bool {
 			return releases[i].CreatedAt.Unix() > releases[j].CreatedAt.Unix()
 		})
 
-		table := tablewriter.NewWriter(os.Stdout)
+		table := tablewriter.NewWriter(cmd.OutOrStdout())
 		table.SetHeader([]string{"current", "branch", "commit", "build-date", "apps"})
 		tableContent := [][]string{}
 		for _, release := range releases {
@@ -74,10 +72,14 @@ var listReleasesCmd = &cobra.Command{
 		}
 
 		table.AppendBulk(tableContent)
+		table.SetOutput(cmd.OutOrStdout())
 		table.Render()
+
+		return nil
 	},
 }
 
-func init()  {
-	//rootCmd.AddCommand(listReleasesCmd)
+func init() {
+	// Работает криво, поэтому закоменчено
+	// rootCmd.AddCommand(listReleasesCmd)
 }
