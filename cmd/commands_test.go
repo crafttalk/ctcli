@@ -100,12 +100,12 @@ func TestInstallAndStartStop(t *testing.T) {
 	t.Log(out)
 
 	out = RunCommand(t, []string{"--root", rootDir, "logs", "siebelintegration"})
+	t.Log(out)
 
 	// В докер окружениях невозможно запустить рутлес контейнеры(
 	if !(strings.Contains(out, "Starting") || strings.Contains(out, "mapping tool not present: Operation not permitted")) {
 		t.Fatalf("Failed to start a service")
 	}
-	t.Log(out)
 
 	out = RunCommand(t, []string{"--root", rootDir, "status"})
 	t.Log(out)
