@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const VERSION int = 7
+const VERSION int = 8
 const COMMIT string = "%%commit_hash%%"
 
 var versionCmd = &cobra.Command{
