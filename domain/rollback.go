@@ -4,10 +4,11 @@ import (
 	"ctcli/domain/ctcliDir"
 	"ctcli/domain/lifetime"
 	"ctcli/util"
-	"github.com/fatih/color"
 	"log"
 	"os"
 	"path"
+
+	"github.com/fatih/color"
 )
 
 func Rollback(rootDir, backupPath string) error {
@@ -48,5 +49,5 @@ func Rollback(rootDir, backupPath string) error {
 	log.Printf("Cleaning up tmp folder\n")
 	ctcliDir.DeleteTempDir(rootDir)
 
-	return lifetime.StartApps(rootDir, []string{})
+	return lifetime.StartApps(rootDir, []string{}, false)
 }

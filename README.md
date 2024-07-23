@@ -44,8 +44,11 @@ ctcli delete
 ### start
 Starts current installation. Example:
 ```shell
-ctcli start [app]
+ctcli start [-d] <app>
 ```
+
+Options:
+* `-d` - Disable write to stdout-stderr.log
 
 ### stop
 Stops current installation. Example:
@@ -95,6 +98,16 @@ Install previous release
 ```shell
 ctcli rollback /path/to/archive.tar.gz
 ```
+
+### watch
+Watching size of stdout-stderr.log
+```shell
+ctcli watch [start|stop] [--size <n>] [--days <n>]
+```
+
+Options:
+* `--size 100` - Creates an archive with the stdout-stderr.log file if it is larger than 100 megabytes and then cleans stdout-stderr.log file
+* `--days 10` - Deletes the archive after 10 days of creation
 
 ## To Be Done
 

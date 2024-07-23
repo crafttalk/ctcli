@@ -6,14 +6,15 @@ import (
 	"ctcli/domain/runc"
 	"ctcli/util"
 	"fmt"
-	"github.com/fatih/color"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
+
+	"github.com/fatih/color"
 )
 
-func StartApps(rootDir string, apps []string) error {
+func StartApps(rootDir string, apps []string, isDisableWriteLogs bool) error {
 	runcPath := release.GetCurrentReleaseRuncPath(rootDir)
 	if !util.PathExists(runcPath) {
 		return fmt.Errorf("there is no runc in current-relase folder")
@@ -37,14 +38,14 @@ func StartApps(rootDir string, apps []string) error {
 		appsToStart = appNames
 	}
 	for _, appName := range appsToStart {
-		if err := StartApp(rootDir, appName, runcPath); err != nil {
+		if err := StartApp(rootDir, appName, runcPath, isDisableWriteLogs); err != nil {
 			color.HiRed(fmt.Sprintf("error while starting %s app, error: %s", appName, err))
 		}
 	}
 	return nil
 }
 
-func StartApp(rootDir, appName, runcPath string) error {
+func StartApp(rootDir, appName, runcPath string, isDisableWriteLogs bool) error {
 	appStatus := runc.GetStatus(rootDir, appName)
 	if appStatus == "running" {
 		color.HiGreen("%s already running", appName)
@@ -57,20 +58,26 @@ func StartApp(rootDir, appName, runcPath string) error {
 
 	cmd := runc.CreateContainer(rootDir, appName)
 
-	logFilePath := ctcliDir.GetAppStdoutLogFilePath(rootDir, appName)
-	_ = os.MkdirAll(path.Dir(logFilePath), os.ModePerm)
-	if util.PathExists(logFilePath) {
-		archiveLogFilePath := ctcliDir.GetNewArchiveStdoutLogFilePath(rootDir, appName)
-		_ = os.MkdirAll(path.Dir(archiveLogFilePath), os.ModePerm)
-		_ = os.Rename(logFilePath, archiveLogFilePath)
+	if !isDisableWriteLogs {
+		logFilePath := ctcliDir.GetAppStdoutLogFilePath(rootDir, appName)
+		_ = os.MkdirAll(path.Dir(logFilePath), os.ModePerm)
+		if util.PathExists(logFilePath) {
+			archiveLogFilePath := ctcliDir.GetNewArchiveStdoutLogFilePath(rootDir, appName)
+			_ = os.MkdirAll(path.Dir(archiveLogFilePath), os.ModePerm)
+			_ = os.Rename(logFilePath, archiveLogFilePath)
+		}
+
+		stdout, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_RDWR|os.O_APPEND, os.ModePerm)
+		if err != nil {
+			return err
+		}
+		cmd.Stdout = stdout
+		cmd.Stderr = stdout
+
+		defer stdout.Close()
 	}
 
-	stdout, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_RDWR, os.ModePerm)
-	if err != nil {
-		return err
-	}
-	cmd.Stdout = stdout
-	cmd.Stderr = stdout
+	
 	if err := cmd.Run(); err != nil {
 		return err
 	}
@@ -82,7 +89,6 @@ func StartApp(rootDir, appName, runcPath string) error {
 		"start",
 		runc.GetContainerName(rootDir, appName),
 	)
-	defer stdout.Close()
 
 	if err := cmd.Run(); err != nil {
 		return err

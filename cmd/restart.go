@@ -4,8 +4,10 @@ import (
 	"ctcli/domain/ctcliDir"
 	"ctcli/domain/lifetime"
 	"ctcli/util"
-	"github.com/spf13/cobra"
 	"path/filepath"
+	"strconv"
+
+	"github.com/spf13/cobra"
 )
 
 var restartCmd = &cobra.Command{
@@ -14,6 +16,15 @@ var restartCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		rootFlag := cmd.Flag("root")
 		rootDir, err := filepath.Abs(rootFlag.Value.String())
+		if err != nil {
+			cmd.PrintErr(err)
+			return
+		}
+		
+		disableFlag := cmd.Flag("disable")
+		
+		isDisableWriteLogsString := disableFlag.Value.String()
+		isDisableWriteLogs, err := strconv.ParseBool(isDisableWriteLogsString)
 		if err != nil {
 			cmd.PrintErr(err)
 			return
@@ -28,7 +39,7 @@ var restartCmd = &cobra.Command{
 			cmd.PrintErr(err)
 			return
 		}
-		if err := lifetime.StartApps(rootDir, args); err != nil {
+		if err := lifetime.StartApps(rootDir, args, isDisableWriteLogs); err != nil {
 			cmd.PrintErr(err)
 			return
 		}
