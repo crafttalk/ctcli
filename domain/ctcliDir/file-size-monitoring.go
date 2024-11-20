@@ -11,6 +11,8 @@ import (
 
 var rw sync.RWMutex
 
+var clearFlag bool = false
+
 func getFileSize(path string) (int64, error) {
 	file, err := os.Stat(path)
 	if err != nil {
@@ -24,23 +26,27 @@ func checkFileSize(rootDir string, app string, maxSize int64) {
 	fileSize, _ := getFileSize(logFilePath)
 
 	if fileSize > maxSize * 1024 * 1024 {
+		clearFlag = true
+
 		rw.Lock()
 		defer rw.Unlock()
 		archiveFileName := fmt.Sprintf("%s.tar.gz", time.Now().UTC().Format("2006-01-02_15-04-05"))
 		util.CreateDirIfNotExist(GetAppLogsDir(rootDir, app), "archives")
-		err := util.ArchiveTarGz(path.Join(GetAppLogsDir(rootDir, app), "archives", archiveFileName), GetAppLogsDir(rootDir, app) + "/stdout-stderr.log")
-		if err == nil {
-			os.Truncate(logFilePath, 0)
-		}
+		util.ArchiveTarGz(path.Join(GetAppLogsDir(rootDir, app), "archives", archiveFileName), GetAppLogsDir(rootDir, app) + "/stdout-stderr.log")
+		
+		os.Truncate(logFilePath, 0)
+		clearFlag = false
 	}
 }
 
 func CheckFilesSize(rootDir string, apps []string, maxSize int64) {
 	for {
-		for _, app := range apps {
-			checkFileSize(rootDir, app, maxSize)
+		if clearFlag == false {
+			for _, app := range apps {
+				checkFileSize(rootDir, app, maxSize)
+			}
 		}
-		
+			
 		time.Sleep(time.Duration(500) * time.Millisecond)
 	}
 }
