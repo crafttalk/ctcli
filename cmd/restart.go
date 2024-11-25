@@ -33,8 +33,12 @@ var restartCmd = &cobra.Command{
 			cmd.PrintErr(err)
 			return
 		}
-		fn := util.MirrorStdoutToFile(ctcliDir.GetCtcliLogFilePath(rootDir))
-		defer fn()
+		
+		if isDisableWriteLogs == false {
+			fn := util.MirrorStdoutToFile(ctcliDir.GetCtcliLogFilePath(rootDir))
+			defer fn()
+		}
+
 		if err := lifetime.StopApps(rootDir, args); err != nil {
 			cmd.PrintErr(err)
 			return
@@ -48,4 +52,5 @@ var restartCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(restartCmd)
+	restartCmd.Flags().BoolP("disable", "d", false, "Disable write to stdout-stderr.log")
 }

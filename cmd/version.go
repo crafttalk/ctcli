@@ -1,11 +1,13 @@
 package cmd
 
 import (
+	"strconv"
+
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
-const VERSION int = 7
+const VERSION float64 = 7.4
 const COMMIT string = "%%commit_hash%%"
 
 var versionCmd = &cobra.Command{
@@ -17,7 +19,7 @@ var versionCmd = &cobra.Command{
 		yellow := color.New(color.FgHiYellow)
 
 		blue.Printf("CraftTalk Command Line Tool ")
-		green.Printf("v%d", VERSION)
+		green.Printf("v" + strconv.FormatFloat(VERSION, 'f', -1, 64))
 		blue.Printf(" -- ")
 		yellow.Println(COMMIT)
 	},
